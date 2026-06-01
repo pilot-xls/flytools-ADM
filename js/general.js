@@ -233,6 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
+// Carrega o ficheiro footer.html e marca o item ativo
+document.addEventListener('DOMContentLoaded', () => {
+    const footerContainer = document.getElementById('footer');
+    if (!footerContainer) return;
+
+    fetch('footer.html')
+        .then(response => response.text())
+        .then(data => {
+            footerContainer.innerHTML = data;
+
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            footerContainer.querySelectorAll('.footer-nav__item').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+});
+
 // ATIVAR / DESATIVAR SWIPE
 const ENABLE_SWIPE_NAV = false; // ← mete false para suspender
 
