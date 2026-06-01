@@ -195,6 +195,40 @@ footer {
     letter-spacing: .3px;
 }
 
+.footer-nav__item--home {
+    position: relative;
+    top: -14px;
+}
+
+.footer-nav__home-bubble {
+    width: 54px;
+    height: 54px;
+    background: #333;
+    border: 3px solid #555;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 -3px 12px rgba(0,0,0,.4);
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.footer-nav__item--home:hover .footer-nav__home-bubble,
+.footer-nav__item--home:active .footer-nav__home-bubble {
+    background: #444;
+    border-color: #666;
+}
+
+.footer-nav__item--home.active .footer-nav__home-bubble {
+    background: rgb(224, 127, 30);
+    border-color: rgb(224, 127, 30);
+}
+
+.footer-nav__home-svg {
+    width: 28px;
+    height: 28px;
+}
+
 .footer-nav__wa-bubble {
     width: 28px;
     height: 28px;
