@@ -181,8 +181,8 @@ body {
 }
 
 .danger-btn {
-    background: #fee2e2;
-    border-color: #fecaca;
+    background: #f5ee85;
+    border-color: #f5ee85;
     color: #991b1b;
 }
 
@@ -224,12 +224,14 @@ body {
     background: #fee2e2;
     color: #991b1b;
     border-radius: 8px;
-    padding: 0.1rem 0.55rem;
     font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
     min-height: 26px;
     transition: transform 0.15s ease;
+    padding-top: 0.1rem;
+    padding-left: 15px;
+    padding-right: 16px;
 }
 
 .clear-history-btn:hover {
