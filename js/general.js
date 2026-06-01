@@ -247,13 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="img/waypoint.png" alt="Rotas" class="footer-nav__icon">
         <span class="footer-nav__label">Routes</span>
     </a>
+    <a href="index.html" class="footer-nav__item footer-nav__item--home">
+        <span class="footer-nav__home-bubble">
+            <svg viewBox="0 0 24 24" class="footer-nav__home-svg">
+                <path fill="#ffffff" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+        </span>
+    </a>
     <a href="mb.html" class="footer-nav__item">
         <img src="img/balance.png" alt="Weight &amp; Balance" class="footer-nav__icon">
         <span class="footer-nav__label">W&amp;B</span>
-    </a>
-    <a href="settings.html" class="footer-nav__item">
-        <img src="img/settings.png" alt="Settings" class="footer-nav__icon">
-        <span class="footer-nav__label">Settings</span>
     </a>
     <a href="https://chat.whatsapp.com/FIYPIW9mRn42HTzPFxXhOX?mode=hqctswi" target="_blank" rel="noopener noreferrer" class="footer-nav__item footer-nav__item--whatsapp">
         <span class="footer-nav__wa-bubble">
