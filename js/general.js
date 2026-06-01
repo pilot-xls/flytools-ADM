@@ -233,25 +233,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 });
 
-// Carrega o ficheiro footer.html e marca o item ativo
-document.addEventListener('DOMContentLoaded', () => {
+// Injeta o footer diretamente (sem fetch) para evitar flicker na navegação
+(function () {
     const footerContainer = document.getElementById('footer');
     if (!footerContainer) return;
 
-    fetch('footer.html')
-        .then(response => response.text())
-        .then(data => {
-            footerContainer.innerHTML = data;
+    footerContainer.innerHTML = `<nav class="footer-nav">
+    <a href="calculadora.html" class="footer-nav__item">
+        <img src="img/calculator.png" alt="Calculadora" class="footer-nav__icon">
+        <span class="footer-nav__label">Calculator</span>
+    </a>
+    <a href="rotas.html" class="footer-nav__item">
+        <img src="img/waypoint.png" alt="Rotas" class="footer-nav__icon">
+        <span class="footer-nav__label">Routes</span>
+    </a>
+    <a href="mb.html" class="footer-nav__item">
+        <img src="img/balance.png" alt="Weight &amp; Balance" class="footer-nav__icon">
+        <span class="footer-nav__label">W&amp;B</span>
+    </a>
+    <a href="settings.html" class="footer-nav__item">
+        <img src="img/settings.png" alt="Settings" class="footer-nav__icon">
+        <span class="footer-nav__label">Settings</span>
+    </a>
+    <a href="https://chat.whatsapp.com/FIYPIW9mRn42HTzPFxXhOX?mode=hqctswi" target="_blank" rel="noopener noreferrer" class="footer-nav__item footer-nav__item--whatsapp">
+        <span class="footer-nav__wa-bubble">
+            <svg viewBox="0 0 24 24" class="footer-nav__wa-svg">
+                <path fill="#ffffff" d="M16.75 13.96c.25.13 1.47.72 1.7.85.23.13.39.2.45.31.06.11.06.64-.15 1.26-.21.62-1.23 1.2-1.69 1.26-.43.06-.97.09-1.56-.11-.36-.12-.82-.27-1.42-.53-2.5-1.08-4.13-3.59-4.25-3.76-.12-.17-1.02-1.36-1.02-2.6 0-1.23.64-1.83.87-2.08.23-.25.5-.31.67-.31h.48c.15 0 .36-.06.56.43.21.5.71 1.73.77 1.85.06.13.1.28.02.45-.08.17-.12.28-.23.43-.11.15-.23.34-.33.46-.11.13-.22.27-.09.53.13.25.58.96 1.24 1.56.85.75 1.57.98 1.82 1.09.25.11.39.09.53-.06.17-.2.73-.85.92-1.14.19-.28.38-.23.64-.14zM12.04 2C6.57 2 2.13 6.42 2.13 11.88c0 1.91.5 3.77 1.45 5.4L2 22l4.86-1.27c1.58.86 3.37 1.31 5.18 1.31 5.46 0 9.91-4.42 9.91-9.88C21.95 6.42 17.5 2 12.04 2z"/>
+            </svg>
+        </span>
+        <span class="footer-nav__label">WhatsApp</span>
+    </a>
+</nav>`;
 
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            footerContainer.querySelectorAll('.footer-nav__item').forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        });
-});
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    footerContainer.querySelectorAll('.footer-nav__item').forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        }
+    });
+}());
 
 // ATIVAR / DESATIVAR SWIPE
 const ENABLE_SWIPE_NAV = false; // ← mete false para suspender
