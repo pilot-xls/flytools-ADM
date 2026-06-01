@@ -69,23 +69,27 @@ body {
     color: #111827;
 }
 
-.time-input-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.55rem;
-    margin-bottom: 0.6rem;
-}
-
-.time-input-grid label {
+.time-display-wrap {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    color: #374151;
-    font-size: 0.8rem;
-    min-width: 0;
+    justify-content: center;
+    margin-bottom: 0.65rem;
 }
 
-.time-input-grid input,
+.time-display {
+    font-family: 'Courier New', monospace;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: 0.08em;
+    background: #f9fafb;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.35rem 1.4rem;
+    text-align: center;
+    min-width: 150px;
+    user-select: none;
+}
+
 .conversion-line input,
 .history-editor select {
     border-radius: 10px;
@@ -98,18 +102,6 @@ body {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
-}
-
-.time-input-grid input {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-
-.time-input-grid input.is-active {
-    border-color: #63b9e0;
-    background: linear-gradient(180deg, #ffffff 0%, #f4fbff 100%);
-    box-shadow:
-        0 0 0 1px rgba(99, 185, 224, 0.25),
-        0 0 12px rgba(89, 178, 219, 0.22);
 }
 
 .field-selector {
@@ -212,13 +204,36 @@ body {
 .history-header {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     margin-bottom: 0.45rem;
 }
 
 .history-header h4 {
     margin: 0;
     font-size: 0.92rem;
+}
+
+.history-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.clear-history-btn {
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 0.1rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 26px;
+    transition: transform 0.15s ease;
+}
+
+.clear-history-btn:hover {
+    transform: translateY(-1px);
 }
 
 .history-editor {
@@ -313,7 +328,6 @@ body {
 }
 
 .conversion-line input:focus,
-.time-input-grid input:focus,
 .history-editor select:focus {
     border-color: #81b4ff;
     outline: none;
@@ -330,11 +344,6 @@ body {
         font-size: 0.96rem;
     }
 
-    .time-input-grid input {
-        font-size: 0.94rem;
-        padding: 0.5rem;
-    }
-
     .conversion-line {
         grid-template-columns: 1fr;
         gap: 6px;
@@ -346,10 +355,6 @@ body {
     .container {
         padding-left: 0.55rem;
         padding-right: 0.55rem;
-    }
-
-    .time-input-grid {
-        gap: 0.45rem;
     }
 
     .total-mobile-card strong {

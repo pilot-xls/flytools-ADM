@@ -1,17 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const totalDisplay = document.getElementById('totalDisplay');
-    const hoursInput = document.getElementById('hoursInput');
-    const minutesInput = document.getElementById('minutesInput');
+    const timeDisplay = document.getElementById('timeDisplay');
     const timeKeypad = document.getElementById('timeKeypad');
     const manualAddBtn = document.getElementById('manualAddBtn');
     const manualSubtractBtn = document.getElementById('manualSubtractBtn');
     const historyList = document.getElementById('historyList');
     const historyCount = document.getElementById('historyCount');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
-    const MAX_DIGITS = 3;
-    let activeField = 'hours';
-    let hoursBuffer = '';
-    let minutesBuffer = '';
+    let buffer = '';
     let history = [];
     let nextHistoryId = 1;
 
@@ -32,27 +29,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 0);
     };
 
-    const parseBuffersToMinutes = () => {
-        const hours = parseInt(hoursBuffer || '0', 10);
-        const minutes = parseInt(minutesBuffer || '0', 10);
-        return (hours * 60) + minutes;
+    const getDisplayValue = () => {
+        const padded = buffer.padStart(4, '0');
+        return `${padded.slice(0, 2)}:${padded.slice(2, 4)}`;
     };
 
-    const clearBuffers = () => {
-        hoursBuffer = '';
-        minutesBuffer = '';
-        renderInputBuffers();
+    const parseBufferToMinutes = () => {
+        const padded = buffer.padStart(4, '0');
+        const hours = parseInt(padded.slice(0, 2), 10);
+        const minutes = parseInt(padded.slice(2, 4), 10);
+        return hours * 60 + minutes;
     };
 
-    const setActiveField = (field) => {
-        activeField = field;
-        hoursInput.classList.toggle('is-active', field === 'hours');
-        minutesInput.classList.toggle('is-active', field === 'minutes');
+    const appendDigit = (digit) => {
+        if (buffer.length < 4) buffer += digit;
     };
 
-    const renderInputBuffers = () => {
-        hoursInput.value = hoursBuffer || '00';
-        minutesInput.value = minutesBuffer || '00';
+    const clearBuffer = () => {
+        buffer = '';
+        renderTimeDisplay();
+    };
+
+    const renderTimeDisplay = () => {
+        timeDisplay.textContent = getDisplayValue();
     };
 
     const formatHistoryValue = (item) => {
@@ -94,18 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetCalculator = () => {
         history = [];
         nextHistoryId = 1;
-        clearBuffers();
+        clearBuffer();
         renderHistory();
         renderTotal();
     };
 
     const commitOperation = (operator) => {
-        const delta = parseBuffersToMinutes();
+        const delta = parseBufferToMinutes();
         if (delta <= 0) return;
 
         history.push({ id: nextHistoryId++, operator, minutes: delta });
 
-        clearBuffers();
+        clearBuffer();
         renderTotal();
         renderHistory();
     };
@@ -116,21 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTotal();
     };
 
-    const setupInputPicker = (input, fieldName) => {
-        const activateField = (event) => {
-            event.preventDefault();
-            setActiveField(fieldName);
-            input.blur();
-        };
-
-        input.addEventListener('pointerdown', activateField);
-        input.addEventListener('click', activateField);
-        input.addEventListener('touchstart', activateField, { passive: false });
-    };
-
-    setupInputPicker(hoursInput, 'hours');
-    setupInputPicker(minutesInput, 'minutes');
-
     timeKeypad.addEventListener('click', (event) => {
         const button = event.target.closest('button');
         if (!button) return;
@@ -138,38 +122,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const action = button.dataset.action;
         const key = button.dataset.key;
 
-        const getBuffer = () => (activeField === 'hours' ? hoursBuffer : minutesBuffer);
-        const setBuffer = (value) => {
-            if (activeField === 'hours') {
-                hoursBuffer = value;
-            } else {
-                minutesBuffer = value;
-            }
-        };
-
-        if (action === 'clear') {
-            resetCalculator();
+        if (action === 'double-zero') {
+            appendDigit('0');
+            appendDigit('0');
+            renderTimeDisplay();
             return;
         }
 
         if (action === 'backspace') {
-            setBuffer(getBuffer().slice(0, -1));
-            renderInputBuffers();
+            buffer = buffer.slice(0, -1);
+            renderTimeDisplay();
             return;
         }
 
         if (key) {
-            const current = getBuffer();
-            if (current.length >= MAX_DIGITS) return;
-
-            const updated = current === '0' ? key : `${current}${key}`;
-            setBuffer(updated);
-            renderInputBuffers();
+            appendDigit(key);
+            renderTimeDisplay();
         }
     });
 
     manualAddBtn.addEventListener('click', () => commitOperation('+'));
     manualSubtractBtn.addEventListener('click', () => commitOperation('-'));
+
+    clearHistoryBtn.addEventListener('click', resetCalculator);
 
     historyList.addEventListener('click', (event) => {
         const target = event.target.closest('button[data-action]');
@@ -183,8 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    setActiveField('hours');
-    renderInputBuffers();
+    renderTimeDisplay();
     renderHistory();
     renderTotal();
 });
