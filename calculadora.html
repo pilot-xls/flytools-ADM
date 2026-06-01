@@ -16,16 +16,8 @@
             <section class="section calculator-block">
                 <div class="time-calculator">
                     <h3 class="block-title">Calculadora de Tempo</h3>
-
-                    <div class="total-mobile-card">
-                        <span>Total acumulado</span>
-                        <strong id="totalDisplay">00h 00m</strong>
+                    <div class="time-display-wrap"><span id="timeDisplay" class="time-display">00:00</span>
                     </div>
-
-                    <div class="time-display-wrap">
-                        <span id="timeDisplay" class="time-display">00:00</span>
-                    </div>
-
                     <div class="keypad" id="timeKeypad" aria-label="Teclado numérico">
                         <button type="button" data-key="1">1</button>
                         <button type="button" data-key="2">2</button>
@@ -40,17 +32,16 @@
                         <button type="button" data-key="0">0</button>
                         <button type="button" data-action="backspace">⌫</button>
                     </div>
-
                     <div class="manual-actions">
-                        <button id="manualAddBtn" type="button" class="primary-btn">Somar</button>
                         <button id="manualSubtractBtn" type="button" class="danger-btn">Subtrair</button>
+                        <button id="manualAddBtn" type="button" class="primary-btn">Somar</button>
                     </div>
-
                     <section class="history-screen" aria-label="Ecrã de histórico">
+                        <div class="total-mobile-card"><span>Total acumulado</span><strong id="totalDisplay">00h 00m</strong>
+                        </div>
                         <div class="history-header">
                             <h4>Histórico</h4>
-                            <div class="history-header-right">
-                                <small id="historyCount">0 registos</small>
+                            <div class="history-header-right"><small id="historyCount">0 registos</small>
                                 <button type="button" id="clearHistoryBtn" class="clear-history-btn" title="Limpar histórico">C</button>
                             </div>
                         </div>
@@ -58,7 +49,6 @@
                     </section>
                 </div>
             </section>
-
             <section class="section conversions-block">
                 <div class="calc-block">
                     <h2 class="block-title">Conversões</h2>
