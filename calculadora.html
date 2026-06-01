@@ -22,15 +22,8 @@
                         <strong id="totalDisplay">00h 00m</strong>
                     </div>
 
-                    <div class="time-input-grid">
-                        <label>
-                            Horas
-                            <input id="hoursInput" type="text" readonly inputmode="none" placeholder="00">
-                        </label>
-                        <label>
-                            Minutos
-                            <input id="minutesInput" type="text" readonly inputmode="none" placeholder="00">
-                        </label>
+                    <div class="time-display-wrap">
+                        <span id="timeDisplay" class="time-display">00:00</span>
                     </div>
 
                     <div class="keypad" id="timeKeypad" aria-label="Teclado numérico">
@@ -43,7 +36,7 @@
                         <button type="button" data-key="7">7</button>
                         <button type="button" data-key="8">8</button>
                         <button type="button" data-key="9">9</button>
-                        <button type="button" data-action="clear">C</button>
+                        <button type="button" data-action="double-zero">00</button>
                         <button type="button" data-key="0">0</button>
                         <button type="button" data-action="backspace">⌫</button>
                     </div>
@@ -56,7 +49,10 @@
                     <section class="history-screen" aria-label="Ecrã de histórico">
                         <div class="history-header">
                             <h4>Histórico</h4>
-                            <small id="historyCount">0 registos</small>
+                            <div class="history-header-right">
+                                <small id="historyCount">0 registos</small>
+                                <button type="button" id="clearHistoryBtn" class="clear-history-btn" title="Limpar histórico">C</button>
+                            </div>
                         </div>
                         <ul id="historyList" class="history-list"></ul>
                     </section>
