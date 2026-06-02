@@ -399,147 +399,176 @@ function csath_MTOW(zfw) {
     return -1.05263 * zfw + 12084.21;
 }
 
+function cleanUnitValue(value, unit = "") {
+    const n = Number(String(value ?? "").replace(/[^\d.]/g, ""));
+    if (!Number.isFinite(n) || n <= 0) return unit ? `0 ${unit}` : "0";
+    return unit ? `${Math.round(n)} ${unit}` : String(Math.round(n));
+}
+
+function displayFuelInfo(info) {
+    return info || "Max: 0 lb";
+}
+
 function buildLegSummary(leg) {
     return {
-        fuelMax: leg?.maxFuelInfo || "Max: 0 lb (0 kg)",
-        fuelDeparture: leg?.fuelOB ? `${leg.fuelOB} lb` : "0 lb",
-        trafficMax: leg?.maxPayloadInfo || "Max: 0 kg",
-        trafficDeparture: leg?.trafficLoad?.total ? `${leg.trafficLoad.total} kg` : "0 kg",
+        nome: leg?.nome?.trim() || "LEG",
         tow: leg?.tow || "0 kg",
-        lw: leg?.landingWeight || "0 kg"
+        lw: leg?.landingWeight || "0 kg",
+        tripFuel: leg?.tripFuel ? `${leg.tripFuel} lb` : "0 lb",
+        maxFuel: displayFuelInfo(leg?.maxFuelInfo)
     };
+}
+
+function getLegStatusClass(leg) {
+    const colors = Object.values(leg?.limitColors || {});
+    return colors.some(color => String(color).toLowerCase() === "red") ? "is-alert" : "is-normal";
+}
+
+function ensureLegEditorDialog() {
+    let dialog = document.getElementById("leg-editor-dialog");
+    if (dialog) return dialog;
+
+    dialog = document.createElement("dialog");
+    dialog.id = "leg-editor-dialog";
+    dialog.className = "leg-editor-dialog";
+    dialog.innerHTML = `
+        <form method="dialog" class="leg-editor-shell">
+            <div class="leg-editor-radar" aria-hidden="true"></div>
+            <div class="leg-editor-head">
+                <div>
+                    <span class="leg-editor-kicker">Leg editor</span>
+                    <h2 id="leg-editor-title">Editar leg</h2>
+                    <p id="leg-editor-subtitle">Editar dados da leg.</p>
+                </div>
+                <button class="leg-editor-close" value="close" aria-label="Fechar editor">×</button>
+            </div>
+
+            <div class="leg-editor-grid">
+                <label class="leg-editor-field leg-editor-field-wide">
+                    <span>Nome da leg</span>
+                    <input class="leg-editor-input leg-editor-nome" placeholder="ex: CAT-PRM" autocomplete="off">
+                </label>
+                <label class="leg-editor-field">
+                    <span>Min Fuel O/B</span>
+                    <input class="leg-editor-input leg-editor-min-fuel" placeholder="lb" inputmode="numeric" pattern="[0-9]*">
+                </label>
+                <label class="leg-editor-field">
+                    <span>Fuel O/B</span>
+                    <input class="leg-editor-input leg-editor-fuel-ob" placeholder="lb" inputmode="numeric" pattern="[0-9]*">
+                </label>
+                <label class="leg-editor-field">
+                    <span>Traffic Load</span>
+                    <div class="leg-editor-combo">
+                        <input class="leg-editor-input leg-editor-traffic traffic-load-input" placeholder="kg" inputmode="numeric" pattern="[0-9]*">
+                        <button type="button" class="leg-editor-load-btn">Load</button>
+                    </div>
+                </label>
+                <label class="leg-editor-field">
+                    <span>Trip Fuel</span>
+                    <input class="leg-editor-input leg-editor-trip-fuel" placeholder="lb" inputmode="numeric" pattern="[0-9]*">
+                </label>
+            </div>
+
+            <div class="leg-editor-telemetry">
+                <div><span>Endurance</span><strong class="endurance-info">--:--</strong></div>
+                <div><span>ZFW</span><strong class="zfw-info">0 kg</strong></div>
+                <div><span>Ramp</span><strong class="ramp-weight-info">0 kg</strong></div>
+                <div><span>TOW</span><strong class="tow-info">0 kg</strong></div>
+                <div><span>LW</span><strong class="landing-weight-info">0 kg</strong></div>
+                <div><span>Max Fuel</span><strong id="leg-max-fuel">Max: 0 lb</strong></div>
+                <div><span>Max Payload</span><strong id="leg-max-traffic-load">Max: 0 kg</strong></div>
+            </div>
+
+            <div class="leg-editor-actions">
+                <button type="button" class="menos-leg">- Leg</button>
+                <button type="button" class="mais-leg">+ Leg</button>
+                <button class="leg-editor-done" value="close">Concluído</button>
+            </div>
+        </form>`;
+    document.body.appendChild(dialog);
+    return dialog;
+}
+
+function getLegByDialog(dialog) {
+    const rotaIndex = Number(dialog.dataset.rotaIndex);
+    const legIndex = Number(dialog.dataset.legIndex);
+    const rota = gEstadoRotas?.rotas?.[rotaIndex];
+    return { rota, leg: rota?.legs?.[legIndex], rotaIndex, legIndex };
+}
+
+function syncLegEditorDialog(dialog, leg) {
+    if (!dialog || !leg) return;
+    dialog.querySelector(".leg-editor-nome").value = leg.nome || "";
+    dialog.querySelector(".leg-editor-min-fuel").value = leg.minFuel || "";
+    dialog.querySelector(".leg-editor-fuel-ob").value = leg.fuelOB || "";
+    dialog.querySelector(".leg-editor-fuel-ob").placeholder = leg.nextSuggestedFuel || "lb";
+    dialog.querySelector(".leg-editor-traffic").value = leg.trafficLoad?.total || "";
+    dialog.querySelector(".leg-editor-trip-fuel").value = leg.tripFuel || "";
+
+    const title = dialog.querySelector("#leg-editor-title");
+    if (title) title.textContent = leg.nome?.trim() ? `Editar ${leg.nome.trim()}` : "Editar leg";
+
+    dialog.querySelector(".endurance-info").textContent = leg.endurance || "--:--";
+    dialog.querySelector(".zfw-info").textContent = leg.zfw || "0 kg";
+    dialog.querySelector(".ramp-weight-info").textContent = leg.rampWeight || "0 kg";
+    dialog.querySelector(".tow-info").textContent = leg.tow || "0 kg";
+    dialog.querySelector(".landing-weight-info").textContent = leg.landingWeight || "0 kg";
+    dialog.querySelector("#leg-max-fuel").textContent = leg.maxFuelInfo || "Max: 0 lb";
+    dialog.querySelector("#leg-max-traffic-load").textContent = leg.maxPayloadInfo || "Max: 0 kg";
+
+    dialog.querySelector(".zfw-info").style.color = leg.limitColors?.zfw || "";
+    dialog.querySelector(".ramp-weight-info").style.color = leg.limitColors?.ramp || "";
+    dialog.querySelector(".tow-info").style.color = leg.limitColors?.tow || "";
+    dialog.querySelector(".landing-weight-info").style.color = leg.limitColors?.ldg || "";
+}
+
+function openLegEditor(rotaIndex, legIndex) {
+    const dialog = ensureLegEditorDialog();
+    const rota = gEstadoRotas?.rotas?.[rotaIndex];
+    const leg = rota?.legs?.[legIndex];
+    if (!rota || !leg) return;
+
+    dialog.dataset.rotaIndex = String(rotaIndex);
+    dialog.dataset.legIndex = String(legIndex);
+    syncLegEditorDialog(dialog, leg);
+
+    if (!dialog.open) dialog.showModal();
+    dialog.querySelector(".leg-editor-nome")?.focus();
 }
 
 // -------------------------------------------------------
 // 5. RENDERIZAÇÃO DE LEGS E ROTAS
 // -------------------------------------------------------
 
-function criarLegHTML(leg) {
+function criarLegHTML(leg, legIndex = 0) {
     const summary = buildLegSummary(leg);
+    const statusClass = getLegStatusClass(leg);
     return `
-    <div class="rota-leg" style="border-width:1px;border-radius:20px;border-style:groove;padding:5px;margin-top:10px;display:none;">
-        <div class="rota-leg-top-row" style="display:flex;justify-content:space-between;margin-top:13px;">
-            <input class="leg-nome"
-                   style="font-weight:bold;width:138px;border-width:1px;border-style:ridge;border-radius:10px;"
-                   placeholder="ex:CAT-PRM"
-                   value="${leg?.nome ?? ""}">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <button class="btn-perf">Perf</button>
-                <button class="btn-mb">MB</button>
-                <button class="btn-edit-leg">Edit</button>
-            </div>
-        </div>
-
-        <div class="leg-summary">
-            <div class="leg-summary-grid">
-                <div class="leg-summary-item">
-                    <span class="leg-summary-label">Maximum Fuel</span>
-                    <span class="leg-summary-value leg-summary-fuel-max">${summary.fuelMax}</span>
-                </div>
-                <div class="leg-summary-item">
-                    <span class="leg-summary-label">Fuel at departure</span>
-                    <span class="leg-summary-value leg-summary-fuel-dep">${summary.fuelDeparture}</span>
-                </div>
-                <div class="leg-summary-item">
-                    <span class="leg-summary-label">Traffic Load</span>
-                    <span class="leg-summary-value leg-summary-traffic-max">${summary.trafficMax}</span>
-                </div>
-                <div class="leg-summary-item">
-                    <span class="leg-summary-label">Traffic Load (atual)</span>
-                    <span class="leg-summary-value leg-summary-traffic-dep">${summary.trafficDeparture}</span>
-                </div>
-            </div>
-            <div class="leg-summary-divider"></div>
-            <div class="leg-summary-weights">
-                <div class="leg-summary-item leg-summary-item-strong">
-                    <span class="leg-summary-label">Takeoff Weight</span>
-                    <span class="leg-summary-value leg-summary-tow">${summary.tow}</span>
-                </div>
-                <div class="leg-summary-item leg-summary-item-strong">
-                    <span class="leg-summary-label">Landing Weight</span>
-                    <span class="leg-summary-value leg-summary-lw">${summary.lw}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="leg-edit-content" style="margin-top:10px;">
-            <div class="row-inputleg" style="display:flex;align-items:flex-end;justify-content:space-between;
-                    border-top-width:1px;border-top-style:dotted;padding-bottom:12px;">
-                <p style="margin-bottom:0;">Min Fuel O/B</p>
-                <input class="min-fuel-input"
-                       placeholder="Lb"
-                       type="text"
-                       inputmode="numeric"
-                       pattern="[0-9]*"
-                       value="${leg?.minFuel ?? ""}">
-            </div>
-
-            <div class="row-inputleg" style="display:flex;align-items:flex-end;justify-content:space-between;
-                    border-top-width:1px;border-top-style:dotted;">
-                <p style="margin-bottom:0;">Fuel O/B</p>
-                <input class="fuel-ob-input"
-                       placeholder="${leg?.nextSuggestedFuel || "Lb"}"
-                       type="text"
-                       inputmode="numeric"
-                       pattern="[0-9]*"
-                       value="${leg?.fuelOB ?? ""}">
-            </div>
-            <p id="leg-max-fuel" style="color:#555;margin:0;">${leg?.maxFuelInfo || ""}</p>
-
-            <div class="row-inputleg" style="display:flex;align-items:flex-end;justify-content:space-between;
-                    border-top-width:1px;border-top-style:dotted;">
-                <p style="margin-bottom:0;">Traffic Load</p>
-                <input class="traffic-load-input"
-                       placeholder="Kg"
-                       type="text"
-                       inputmode="numeric"
-                       pattern="[0-9]*"
-                       value="${leg?.trafficLoad?.total ?? ""}">
-            </div>
-            <p id="leg-max-traffic-load" style="color:#555;margin:0;">${leg?.maxPayloadInfo || ""}</p>
-
-            <div class="row-inputleg" style="display:flex;align-items:flex-end;justify-content:space-between;
-                    border-top-width:1px;border-top-style:dotted;">
-                <p style="margin-bottom:0;">Trip fuel:</p>
-                <input class="trip-fuel-input"
-                       placeholder="Lb"
-                       type="text"
-                       inputmode="numeric"
-                       pattern="[0-9]*"
-                       value="${leg?.tripFuel ?? ""}">
-            </div>
-
-            <div style="display:flex;justify-content:space-between;border-top-width:1px;border-top-style:dotted;
-                    padding-top:0;margin-top:12px;">
-                <p>Endurance:</p>
-                <p class="endurance-info">${leg?.endurance ?? ""}</p>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;border-top-width:1px;border-top-style:dotted;">
-                <p>ZFW:</p>
-                <p class="zfw-info">${leg?.zfw ?? ""}</p>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;border-top-width:1px;border-top-style:dotted;">
-                <p>Ramp weight:</p>
-                <p class="ramp-weight-info">${leg?.rampWeight ?? ""}</p>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;border-top-width:1px;border-top-style:dotted;">
-                <p>TOW:</p>
-                <p class="tow-info">${leg?.tow ?? ""}</p>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;border-top-width:1px;border-top-style:dotted;
-                    border-bottom-width:1px;border-bottom-style:dotted;">
-                <p>LW:</p>
-                <p class="landing-weight-info">${leg?.landingWeight ?? ""}</p>
-            </div>
-        </div>
-
-        <div style="display:flex;justify-content:center;gap:15px;margin-top:5px;">
-            <button class="menos-leg">- Leg</button>
-            <button class="mais-leg">+ Leg</button>
+    <div class="rota-leg ${statusClass}" data-leg-index="${legIndex}" style="display:none;">
+        <button class="leg-flight-strip btn-edit-leg" type="button" title="Editar ${summary.nome}">
+            <span class="leg-strip-number">${String(legIndex + 1).padStart(2, "0")}</span>
+            <span class="leg-strip-name">${summary.nome}</span>
+            <span class="leg-strip-metric">
+                <small>TOW</small>
+                <strong class="leg-summary-tow">${summary.tow}</strong>
+            </span>
+            <span class="leg-strip-metric">
+                <small>LW</small>
+                <strong class="leg-summary-lw">${summary.lw}</strong>
+            </span>
+            <span class="leg-strip-metric">
+                <small>TRIPF</small>
+                <strong class="leg-summary-tripf">${summary.tripFuel}</strong>
+            </span>
+            <span class="leg-strip-metric leg-strip-maxfuel">
+                <small>MAX FUEL</small>
+                <strong class="leg-summary-fuel-max">${summary.maxFuel}</strong>
+            </span>
+            <span class="leg-strip-edit">Edit</span>
+        </button>
+        <div class="leg-quick-actions" aria-label="Ações da leg">
+            <button class="btn-perf" type="button">Perf</button>
+            <button class="btn-mb" type="button">MB</button>
         </div>
     </div>`;
 }
@@ -551,41 +580,47 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
         const el = legEls[i];
         if (!el) return;
 
-        el.querySelector(".endurance-info").textContent = leg.endurance || "";
-        el.querySelector(".zfw-info").textContent = leg.zfw || "";
-        el.querySelector(".ramp-weight-info").textContent = leg.rampWeight || "";
-        el.querySelector(".tow-info").textContent = leg.tow || "";
-        el.querySelector(".landing-weight-info").textContent = leg.landingWeight || "";
+        const summary = buildLegSummary(leg);
+        el.classList.toggle("is-alert", getLegStatusClass(leg) === "is-alert");
+        el.classList.toggle("is-normal", getLegStatusClass(leg) !== "is-alert");
 
-        // Cores
-        el.querySelector(".zfw-info").style.color = leg.limitColors?.zfw || "black";
-        el.querySelector(".ramp-weight-info").style.color = leg.limitColors?.ramp || "black";
-        el.querySelector(".tow-info").style.color = leg.limitColors?.tow || "black";
-        el.querySelector(".landing-weight-info").style.color = leg.limitColors?.ldg || "black";
+        const setText = (selector, text) => {
+            const target = el.querySelector(selector);
+            if (target) target.textContent = text;
+        };
+        const setColor = (selector, color) => {
+            const target = el.querySelector(selector);
+            if (target) target.style.color = color || "";
+        };
 
-        // Textos de máximos
-        const maxFuelEl = el.querySelector("#leg-max-fuel");
-        const maxPayloadEl = el.querySelector("#leg-max-traffic-load");
-        if (maxFuelEl) maxFuelEl.textContent = leg.maxFuelInfo || "";
-        if (maxPayloadEl) maxPayloadEl.textContent = leg.maxPayloadInfo || "";
+        setText(".leg-strip-name", summary.nome);
+        setText(".leg-summary-tow", summary.tow);
+        setText(".leg-summary-lw", summary.lw);
+        setText(".leg-summary-tripf", summary.tripFuel);
+        setText(".leg-summary-fuel-max", summary.maxFuel);
+
+        setText(".endurance-info", leg.endurance || "");
+        setText(".zfw-info", leg.zfw || "");
+        setText(".ramp-weight-info", leg.rampWeight || "");
+        setText(".tow-info", leg.tow || "");
+        setText(".landing-weight-info", leg.landingWeight || "");
+        setText("#leg-max-fuel", leg.maxFuelInfo || "");
+        setText("#leg-max-traffic-load", leg.maxPayloadInfo || "");
+
+        setColor(".zfw-info", leg.limitColors?.zfw);
+        setColor(".ramp-weight-info", leg.limitColors?.ramp);
+        setColor(".tow-info", leg.limitColors?.tow);
+        setColor(".landing-weight-info", leg.limitColors?.ldg);
 
         const fuelInputEl = el.querySelector(".fuel-ob-input");
         if (fuelInputEl) fuelInputEl.placeholder = leg?.nextSuggestedFuel || "Lb";
-
-        const summary = buildLegSummary(leg);
-        const fuelMaxSummaryEl = el.querySelector(".leg-summary-fuel-max");
-        const fuelDepSummaryEl = el.querySelector(".leg-summary-fuel-dep");
-        const trafficMaxSummaryEl = el.querySelector(".leg-summary-traffic-max");
-        const trafficDepSummaryEl = el.querySelector(".leg-summary-traffic-dep");
-        const towSummaryEl = el.querySelector(".leg-summary-tow");
-        const lwSummaryEl = el.querySelector(".leg-summary-lw");
-        if (fuelMaxSummaryEl) fuelMaxSummaryEl.textContent = summary.fuelMax;
-        if (fuelDepSummaryEl) fuelDepSummaryEl.textContent = summary.fuelDeparture;
-        if (trafficMaxSummaryEl) trafficMaxSummaryEl.textContent = summary.trafficMax;
-        if (trafficDepSummaryEl) trafficDepSummaryEl.textContent = summary.trafficDeparture;
-        if (towSummaryEl) towSummaryEl.textContent = summary.tow;
-        if (lwSummaryEl) lwSummaryEl.textContent = summary.lw;
     });
+
+    const dialog = document.getElementById("leg-editor-dialog");
+    if (dialog?.open) {
+        const { leg } = getLegByDialog(dialog);
+        if (leg) syncLegEditorDialog(dialog, leg);
+    }
 }
 
 function criarRotaCardHTML(rota) {
@@ -615,8 +650,8 @@ function renderRotas(rootEl, estado) {
         const rotaCard = rotaWrapper.firstElementChild;
 
         // Adicionar legs
-        (rota.legs || []).forEach(leg => {
-            rotaCard.insertAdjacentHTML("beforeend", criarLegHTML(leg));
+        (rota.legs || []).forEach((leg, legIndex) => {
+            rotaCard.insertAdjacentHTML("beforeend", criarLegHTML(leg, legIndex));
         });
 
         // Formatar unidades ao carregar
@@ -720,6 +755,106 @@ function validaFuelEmLb(legs, aircraft, pilotsKg, fuelTaxiKg, fuelLb) {
 // -------------------------------------------------------
 
 function attachEvents(container, estado, aircraft) {
+
+    const legEditor = ensureLegEditorDialog();
+
+    function refreshOpenRoute(rotaIndex) {
+        const rotaCard = container.querySelectorAll(".rota-card")[rotaIndex];
+        const rotaData = estado.rotas[rotaIndex];
+        if (rotaCard && rotaData) aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData);
+    }
+
+    function recomputeFromDialog(dialog = legEditor) {
+        const { rota, rotaIndex } = getLegByDialog(dialog);
+        if (!rota) return;
+        recomputeRoute(rota, aircraft);
+        guardarEstadoRotas(estado);
+        refreshOpenRoute(rotaIndex);
+    }
+
+    legEditor.addEventListener("input", (e) => {
+        const { rota, leg } = getLegByDialog(legEditor);
+        if (!rota || !leg) return;
+
+        if (e.target.classList.contains("leg-editor-nome")) {
+            leg.nome = e.target.value;
+        }
+
+        if (e.target.classList.contains("leg-editor-min-fuel")) {
+            leg.minFuel = Number(String(e.target.value).replace(/[^\d.]/g, "")) || 0;
+        }
+
+        if (e.target.classList.contains("leg-editor-fuel-ob")) {
+            let fuelValue = Number(String(e.target.value).replace(/[^\d.]/g, "")) || 0;
+            const maxFuelTankLb = getAircraftMaxFuelLb(aircraft);
+            if (maxFuelTankLb > 0 && fuelValue > maxFuelTankLb) fuelValue = maxFuelTankLb;
+            leg.fuelOB = fuelValue;
+            e.target.value = fuelValue > 0 ? String(fuelValue) : "";
+        }
+
+        if (e.target.classList.contains("leg-editor-trip-fuel")) {
+            leg.tripFuel = Number(String(e.target.value).replace(/[^\d.]/g, "")) || 0;
+        }
+
+        if (e.target.classList.contains("leg-editor-traffic")) {
+            const total = Number(String(e.target.value).replace(/[^\d.]/g, "")) || 0;
+            leg.trafficLoad = {
+                ...(leg.trafficLoad || createEmptyTrafficLoad()),
+                total,
+                moment: Number(leg.trafficLoad?.moment || 0)
+            };
+        }
+
+        recomputeFromDialog(legEditor);
+    });
+
+    legEditor.addEventListener("click", (e) => {
+        const { rota, leg, rotaIndex, legIndex } = getLegByDialog(legEditor);
+        if (!rota || !leg) return;
+
+        if (e.target.classList.contains("leg-editor-load-btn")) {
+            window.trafficInputAlvo = legEditor.querySelector(".leg-editor-traffic");
+            window.trafficLegAlvo = leg;
+            bloquearScroll();
+            window.popupTLoad.showModal();
+            window.popupTLoad.focus();
+            window.setAndUpdatePopup();
+            return;
+        }
+
+        if (e.target.classList.contains("mais-leg")) {
+            rota.legs.splice(legIndex + 1, 0, novaLegData());
+            recomputeRoute(rota, aircraft);
+            guardarEstadoRotas(estado);
+            renderRotas(container, estado);
+            const novaRotaCard = container.querySelectorAll(".rota-card")[rotaIndex];
+            if (novaRotaCard) {
+                novaRotaCard.querySelectorAll(".rota-leg").forEach(div => { div.style.display = "block"; });
+                const toggleBtn = novaRotaCard.querySelector(".toggleBtn");
+                if (toggleBtn) toggleBtn.textContent = "▲";
+            }
+            openLegEditor(rotaIndex, legIndex + 1);
+            return;
+        }
+
+        if (e.target.classList.contains("menos-leg")) {
+            if (rota.legs.length <= 1) return;
+            const nomeLeg = rota.legs[legIndex]?.nome?.trim() || `Leg ${legIndex + 1}`;
+            const querApagar = confirm(`A leg "${nomeLeg}" vai ser eliminada.`);
+            if (!querApagar) return;
+            rota.legs.splice(legIndex, 1);
+            recomputeRoute(rota, aircraft);
+            guardarEstadoRotas(estado);
+            renderRotas(container, estado);
+            const novaRotaCard = container.querySelectorAll(".rota-card")[rotaIndex];
+            if (novaRotaCard) {
+                novaRotaCard.querySelectorAll(".rota-leg").forEach(div => { div.style.display = "block"; });
+                const toggleBtn = novaRotaCard.querySelector(".toggleBtn");
+                if (toggleBtn) toggleBtn.textContent = "▲";
+            }
+            if (rota.legs.length) openLegEditor(rotaIndex, Math.max(0, legIndex - 1));
+        }
+    });
 
     // Toggle abrir/fechar legs de uma rota (fecha as outras)
     container.addEventListener("click", (e) => {
@@ -837,13 +972,22 @@ function attachEvents(container, estado, aircraft) {
     // Guardar inputs e recalcular rota
     container.addEventListener("input", (e) => {
         const rotaCard = e.target.closest(".rota-card");
-        const legEl = e.target.closest(".rota-leg");
-        if (!rotaCard || !legEl) return;
+        if (!rotaCard) return;
 
         const rotaIndex = [...container.querySelectorAll(".rota-card")].indexOf(rotaCard);
-        const legIndex = [...rotaCard.querySelectorAll(".rota-leg")].indexOf(legEl);
-
         const rotaData = estado.rotas[rotaIndex];
+        if (!rotaData) return;
+
+        if (e.target.classList.contains("nome-rota")) {
+            rotaData.nome = e.target.value;
+            guardarEstadoRotas(estado);
+            return;
+        }
+
+        const legEl = e.target.closest(".rota-leg");
+        if (!legEl) return;
+
+        const legIndex = [...rotaCard.querySelectorAll(".rota-leg")].indexOf(legEl);
         const legData = rotaData.legs[legIndex];
 
         if (e.target.classList.contains("leg-nome")) {
@@ -961,14 +1105,18 @@ function attachEvents(container, estado, aircraft) {
         window.location.href = "mb.html";
     });
 
-    // Alternar modo da leg (view/edit)
+    // Abrir cockpit popup para editar a leg
     container.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("btn-edit-leg")) return;
-        const legEl = e.target.closest(".rota-leg");
-        if (!legEl) return;
+        const editBtn = e.target.closest(".btn-edit-leg");
+        if (!editBtn) return;
 
-        const expanded = legEl.classList.toggle("is-expanded");
-        e.target.textContent = expanded ? "View" : "Edit";
+        const rotaCard = editBtn.closest(".rota-card");
+        const legEl = editBtn.closest(".rota-leg");
+        if (!rotaCard || !legEl) return;
+
+        const rotaIndex = [...container.querySelectorAll(".rota-card")].indexOf(rotaCard);
+        const legIndex = [...rotaCard.querySelectorAll(".rota-leg")].indexOf(legEl);
+        openLegEditor(rotaIndex, legIndex);
     });
 
     // UX: selecionar texto dos inputs ao focar + fechar teclado em mobile
