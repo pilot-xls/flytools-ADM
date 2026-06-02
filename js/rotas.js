@@ -545,7 +545,7 @@ function criarLegHTML(leg, legIndex = 0) {
     const statusClass = getLegStatusClass(leg);
     return `
     <div class="rota-leg ${statusClass}" data-leg-index="${legIndex}" style="display:none;">
-        <button class="leg-flight-strip btn-edit-leg" type="button" title="Editar ${summary.nome}">
+        <button class="leg-flight-strip btn-edit-leg" type="button" title="Editar ${summary.nome}" aria-label="Editar ${summary.nome}">
             <span class="leg-strip-number">${String(legIndex + 1).padStart(2, "0")}</span>
             <span class="leg-strip-name">${summary.nome}</span>
             <span class="leg-strip-metric">
@@ -564,7 +564,6 @@ function criarLegHTML(leg, legIndex = 0) {
                 <small>MAX FUEL</small>
                 <strong class="leg-summary-fuel-max">${summary.maxFuel}</strong>
             </span>
-            <span class="leg-strip-edit">Edit</span>
         </button>
         <div class="leg-quick-actions" aria-label="Ações da leg">
             <button class="btn-perf" type="button">Perf</button>
@@ -1105,13 +1104,13 @@ function attachEvents(container, estado, aircraft) {
         window.location.href = "mb.html";
     });
 
-    // Abrir cockpit popup para editar a leg
+    // Abrir o popup ao tocar diretamente na leg
     container.addEventListener("click", (e) => {
-        const editBtn = e.target.closest(".btn-edit-leg");
-        if (!editBtn) return;
+        const legStrip = e.target.closest(".leg-flight-strip");
+        if (!legStrip) return;
 
-        const rotaCard = editBtn.closest(".rota-card");
-        const legEl = editBtn.closest(".rota-leg");
+        const rotaCard = legStrip.closest(".rota-card");
+        const legEl = legStrip.closest(".rota-leg");
         if (!rotaCard || !legEl) return;
 
         const rotaIndex = [...container.querySelectorAll(".rota-card")].indexOf(rotaCard);
