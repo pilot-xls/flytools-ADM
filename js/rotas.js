@@ -412,10 +412,13 @@ function displayFuelInfo(info) {
 function buildLegSummary(leg) {
     return {
         nome: leg?.nome?.trim() || "LEG",
+        trafficLoad: leg?.trafficLoad?.total ? `${leg.trafficLoad.total} kg` : "0 kg",
+        maxTraffic: leg?.maxPayloadInfo || "Max: 0 kg",
         tow: leg?.tow || "0 kg",
-        lw: leg?.landingWeight || "0 kg",
+        fuelOnBoard: leg?.fuelOB ? `${leg.fuelOB} lb` : "0 lb",
+        maxFuel: displayFuelInfo(leg?.maxFuelInfo),
         tripFuel: leg?.tripFuel ? `${leg.tripFuel} lb` : "0 lb",
-        maxFuel: displayFuelInfo(leg?.maxFuelInfo)
+        lw: leg?.landingWeight || "0 kg"
     };
 }
 
@@ -548,21 +551,27 @@ function criarLegHTML(leg, legIndex = 0) {
         <button class="leg-flight-strip btn-edit-leg" type="button" title="Editar ${summary.nome}" aria-label="Editar ${summary.nome}">
             <span class="leg-strip-number">${String(legIndex + 1).padStart(2, "0")}</span>
             <span class="leg-strip-name">${summary.nome}</span>
-            <span class="leg-strip-metric">
+            <span class="leg-strip-metric leg-strip-traffic">
+                <small>Traffic L</small>
+                <strong class="leg-summary-traffic-load">${summary.trafficLoad}</strong>
+                <em class="leg-summary-traffic-max">${summary.maxTraffic}</em>
+            </span>
+            <span class="leg-strip-metric leg-strip-tow">
                 <small>TOW</small>
                 <strong class="leg-summary-tow">${summary.tow}</strong>
             </span>
-            <span class="leg-strip-metric">
-                <small>LW</small>
-                <strong class="leg-summary-lw">${summary.lw}</strong>
+            <span class="leg-strip-metric leg-strip-fob">
+                <small>FOB</small>
+                <strong class="leg-summary-fob">${summary.fuelOnBoard}</strong>
+                <em class="leg-summary-fuel-max">${summary.maxFuel}</em>
             </span>
-            <span class="leg-strip-metric">
-                <small>TRIPF</small>
+            <span class="leg-strip-metric leg-strip-tripf">
+                <small>TripF</small>
                 <strong class="leg-summary-tripf">${summary.tripFuel}</strong>
             </span>
-            <span class="leg-strip-metric leg-strip-maxfuel">
-                <small>MAX FUEL</small>
-                <strong class="leg-summary-fuel-max">${summary.maxFuel}</strong>
+            <span class="leg-strip-metric leg-strip-lw">
+                <small>LW</small>
+                <strong class="leg-summary-lw">${summary.lw}</strong>
             </span>
         </button>
         <div class="leg-quick-actions" aria-label="Ações da leg">
@@ -593,10 +602,13 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
         };
 
         setText(".leg-strip-name", summary.nome);
+        setText(".leg-summary-traffic-load", summary.trafficLoad);
+        setText(".leg-summary-traffic-max", summary.maxTraffic);
         setText(".leg-summary-tow", summary.tow);
-        setText(".leg-summary-lw", summary.lw);
-        setText(".leg-summary-tripf", summary.tripFuel);
+        setText(".leg-summary-fob", summary.fuelOnBoard);
         setText(".leg-summary-fuel-max", summary.maxFuel);
+        setText(".leg-summary-tripf", summary.tripFuel);
+        setText(".leg-summary-lw", summary.lw);
 
         setText(".endurance-info", leg.endurance || "");
         setText(".zfw-info", leg.zfw || "");

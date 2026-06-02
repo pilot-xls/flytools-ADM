@@ -238,7 +238,7 @@ button {
     width: 100%;
     min-height: 66px;
     display: grid;
-    grid-template-columns: 38px minmax(92px, 1.35fr) repeat(4, minmax(74px, 1fr));
+    grid-template-columns: 38px minmax(92px, 1.2fr) repeat(5, minmax(72px, 1fr));
     gap: .48rem;
     align-items: center;
     border: 1px solid var(--line);
@@ -309,7 +309,22 @@ button {
     line-height: 1.12;
 }
 
-.leg-strip-maxfuel strong {
+.leg-strip-metric em {
+    color: var(--muted);
+    display: block;
+    font-size: .48rem;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.05;
+    margin-top: .12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leg-strip-fob strong,
+.leg-strip-traffic strong {
     color: #047857;
 }
 
@@ -581,16 +596,16 @@ button {
     }
 
     .rota-leg {
-        grid-template-columns: 1fr;
-        gap: .45rem;
-        margin: 0 .55rem .58rem;
+        grid-template-columns: minmax(0, 1fr) 46px;
+        gap: .4rem;
+        margin: 0 .5rem .62rem;
     }
 
     .leg-flight-strip {
-        grid-template-columns: 32px repeat(2, minmax(0, 1fr));
-        gap: .38rem;
+        grid-template-columns: 30px repeat(2, minmax(0, 1fr));
+        gap: .34rem;
         min-height: 0;
-        padding: .46rem;
+        padding: .44rem;
         border-radius: 16px;
     }
 
@@ -602,13 +617,28 @@ button {
     }
 
     .leg-strip-name {
-        grid-column: span 2;
+        grid-column: 2 / -1;
         font-size: 1rem;
+        line-height: 1.05;
     }
 
     .leg-strip-metric {
         min-height: 50px;
-        padding: .38rem .42rem;
+        padding: .38rem .4rem;
+    }
+
+    .leg-strip-traffic,
+    .leg-strip-fob {
+        grid-column: 1 / 3;
+    }
+
+    .leg-strip-tow,
+    .leg-strip-tripf {
+        grid-column: 3 / 4;
+    }
+
+    .leg-strip-lw {
+        grid-column: 1 / -1;
     }
 
     .leg-strip-metric small {
@@ -617,21 +647,28 @@ button {
     }
 
     .leg-strip-metric strong {
-        font-size: .78rem;
+        font-size: .8rem;
     }
 
-    .leg-strip-maxfuel {
-        grid-column: span 2;
+    .leg-strip-metric em {
+        font-size: .43rem;
+        max-width: 100%;
     }
 
     .leg-quick-actions {
-        grid-template-columns: repeat(2, 1fr);
-        gap: .4rem;
+        align-self: start;
+        grid-template-columns: 1fr;
+        gap: .34rem;
+        position: sticky;
+        top: .5rem;
     }
 
     .btn-perf,
     .btn-mb {
-        min-height: 38px;
+        min-width: 46px;
+        min-height: 42px;
+        padding: 0 .25rem;
+        font-size: .62rem;
     }
 
     .leg-editor-dialog {
