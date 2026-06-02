@@ -1,448 +1,683 @@
 /* ==============================
-   BASE / VARS
+   ROTAS - MINIMAL FUTURISTIC UI
    ============================== */
 :root {
-    --bg: #f3f4f6;
-    --card-bg: #fff;
-    --border: #e5e7eb;
-    --muted: #4b5563;
-    --radius-card: 14px;
-    --radius-sm: 8px;
-    --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.07);
-    --accent: #59b2db;
+    --page: #f6f8fb;
+    --panel: rgba(255, 255, 255, .82);
+    --panel-solid: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+    --accent: #00a3ff;
+    --accent-soft: rgba(0, 163, 255, .10);
+    --success: #10b981;
     --danger: #ef4444;
-    --warn: #fde68a;
+    --warning: #f59e0b;
+    --shadow: 0 18px 50px rgba(15, 23, 42, .08);
+    --shadow-soft: 0 10px 30px rgba(15, 23, 42, .06);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--page);
 }
 
 body {
-    background: var(--bg);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    padding-bottom: 4rem;
+    min-height: 100vh;
+    margin: 0;
+    padding-bottom: 5.5rem;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(0, 163, 255, .10), transparent 32rem),
+        radial-gradient(circle at 90% 12%, rgba(16, 185, 129, .08), transparent 28rem),
+        linear-gradient(180deg, #fbfdff 0%, var(--page) 48%, #eef3f8 100%);
 }
 
-/* título */
-h2 {
-    text-align: center;
-    margin: 1rem 0 .5rem;
+button,
+input {
+    font: inherit;
 }
 
-/* toolbar de topo (se quiseres usar) */
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ==============================
+   TOP BAR
+   ============================== */
 .toolbar-rotas {
-    max-width: 520px;
-    margin: 0 auto .8rem;
-    display: flex;
-    justify-content: space-between;
+    width: min(920px, calc(100% - 28px));
+    margin: 1rem auto .85rem;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: .75rem;
+    gap: 1rem;
+    border: 1px solid rgba(226, 232, 240, .86);
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
 }
 
-/* botão “+ Nova rota” normal */
-#btn-nova-rota {
-    padding: .55rem 1.05rem;
-    background: #333;
-    border: none;
-    border-radius: 9999px;
-    color: #fff;
-    font-weight: 600;
+.toolbar-copy {
+    min-width: 0;
+}
 
-    /* margin: 0 auto 1.2rem */
+.eyebrow,
+.leg-editor-kicker {
+    display: inline-flex;
+    margin-bottom: .25rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    font-size: .66rem;
+    font-weight: 800;
+}
+
+.toolbar-rotas h1 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(1.55rem, 5vw, 2.35rem);
+    line-height: 1;
+    letter-spacing: -.055em;
+}
+
+.toolbar-rotas p {
+    max-width: 520px;
+    margin: .35rem 0 0;
+    color: var(--muted);
+    font-size: .92rem;
+    line-height: 1.4;
+}
+
+#btn-nova-rota,
+.fab-add-rota {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    z-index: 2;
+    width: 52px;
+    height: 52px;
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    border-radius: 17px;
+    color: #fff;
+    background: linear-gradient(135deg, #0284c7, var(--accent));
+    box-shadow: 0 14px 28px rgba(0, 163, 255, .22);
+    font-size: 1.7rem;
+    font-weight: 800;
     cursor: pointer;
-    transition: transform .1s ease-out, box-shadow .1s ease-out;
+    transition: transform .16s ease, box-shadow .16s ease;
 }
 
 #btn-nova-rota:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(255, 255, 255, 0.25);
-}
-
-/* FAB (se quiseres o botão flutuante, mantém;
-   se não quiseres, apaga esta secção) */
-.fab-add-rota {
-    position: fixed;
-    right: 16px;
-    bottom: 91px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background: #333;
-    color: #fff;
-    border: none;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.45);
-    cursor: pointer;
-    z-index: 9999;
+    box-shadow: 0 18px 34px rgba(0, 163, 255, .28);
 }
 
 /* ==============================
-   CARTÃO DA ROTA
+   ROUTE CARDS
    ============================== */
 .rota-card {
-    background: var(--card-bg);
-    max-width: 520px;
-    margin: 0 auto 1rem;
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    border: 1px solid rgba(15, 23, 42, 0.03);
+    width: min(920px, calc(100% - 28px));
+    margin: 0 auto .85rem;
+    border: 1px solid rgba(226, 232, 240, .9);
+    border-radius: var(--radius-xl);
+    background: var(--panel);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
 }
 
-/* header da rota */
 .rota-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-    padding: .9rem 1rem .5rem;
-    border-bottom: 1px solid var(--border);
+    gap: .8rem;
+    padding: .78rem;
 }
 
-/* input nome da rota */
 .rota-header .nome-rota {
-    font-weight: 600;
-    font-size: 1.05rem;
-    border: none;
-    outline: none;
-    background: transparent;
     width: 100%;
-    min-height: 32px;
-    max-width: 80px;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    outline: none;
+    padding: 0 .8rem;
+    color: var(--ink);
+    background: transparent;
+    font-size: clamp(1.05rem, 4vw, 1.5rem);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    text-transform: uppercase;
 }
 
-.rota-header .nome-rota::placeholder {
-    color: #cbd5f5;
+.rota-header .nome-rota:focus {
+    border-color: rgba(0, 163, 255, .32);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(0, 163, 255, .08);
 }
 
-/* ações (FCalc, C, Del, ▼) */
 .rota-actions {
     display: flex;
     gap: .4rem;
-    max-width: 170px;
-}
-
-.rota-actions button {
-    min-width: 38px;
-    min-height: 32px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: .7rem;
-    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: .25rem;
-    transition: filter .12s ease-out;
 }
 
-.rota-actions button:hover {
-    filter: brightness(.97);
+.rota-actions button,
+.btn-perf,
+.btn-mb,
+.leg-editor-actions button,
+.leg-editor-load-btn {
+    min-height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 .78rem;
+    color: var(--ink);
+    background: rgba(255, 255, 255, .68);
+    cursor: pointer;
+    font-size: .72rem;
+    font-weight: 800;
+    transition: transform .14s ease, border-color .14s ease, color .14s ease, background .14s ease;
 }
 
-/* cores dos botões */
+.rota-actions button:hover,
+.btn-perf:hover,
+.btn-mb:hover,
+.leg-editor-actions button:hover,
+.leg-editor-load-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 163, 255, .32);
+    color: #0369a1;
+    background: #fff;
+}
+
 .btn-fcalc {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 600;
+    color: #0369a1 !important;
+    background: var(--accent-soft) !important;
 }
 
 .btn-clear-legs {
-    background: var(--warn);
-    color: #92400e;
-    font-weight: 600;
+    color: #92400e !important;
+    background: rgba(245, 158, 11, .12) !important;
 }
 
 .del-rota {
-    background: var(--danger);
-    color: #fff;
+    color: #b91c1c !important;
+    background: rgba(239, 68, 68, .10) !important;
 }
 
 .toggleBtn {
-    background: #e5e7eb;
-    color: #000;
+    min-width: 42px;
+    color: var(--accent) !important;
+    background: #fff !important;
 }
 
 /* ==============================
-   LEGS
+   LEGS AS MINIMAL FLIGHT STRIPS
    ============================== */
 .rota-leg {
-    margin: .9rem 1rem 1rem;
-    background: #f9fafb;
-    border: 1px solid #edf2f7;
-    border-radius: 12px;
-    padding: .7rem .75rem .75rem;
-}
-
-/* se estiver escondida no JS, o JS põe display:none;
-   o CSS não precisa de inline */
-.rota-leg.escondido {
-    display: none;
-}
-
-.rota-leg-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: .35rem;
-}
-
-.rota-leg .btn-edit-leg {
-    min-width: 44px;
-    min-height: 32px;
-    background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
-    border: 1px solid #0f9fb0;
-    border-radius: 8px;
-    padding: .25rem .75rem;
-    cursor: pointer;
-    font-size: .75rem;
-    color: #ffffff;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
-}
-
-.rota-leg .btn-edit-leg:hover,
-.rota-leg .btn-edit-leg:focus-visible {
-    filter: brightness(1.06);
-    box-shadow: 0 6px 14px rgba(14, 165, 233, 0.35);
-}
-
-.rota-leg .btn-edit-leg:active {
-    transform: translateY(1px) scale(.98);
-}
-
-.rota-leg .leg-summary {
-    margin-top: .6rem;
-    padding: .55rem;
-    border-radius: 12px;
-    background: #ffffff;
-    border: 1px solid #e6ebf2;
-    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
-    color: #111827;
-}
-
-.rota-leg .leg-summary-grid,
-.rota-leg .leg-summary-weights {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .45rem .5rem;
+    grid-template-columns: 1fr auto;
+    gap: .55rem;
+    align-items: stretch;
+    margin: 0 .78rem .68rem;
 }
 
-.rota-leg .leg-summary-item {
-    background: #f8fafc;
-    border: 1px solid #e8edf5;
-    border-radius: 8px;
-    padding: .32rem .4rem;
+.leg-flight-strip {
+    width: 100%;
+    min-height: 66px;
+    display: grid;
+    grid-template-columns: 38px minmax(92px, 1.35fr) repeat(4, minmax(74px, 1fr));
+    gap: .48rem;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--success);
+    border-radius: var(--radius-lg);
+    padding: .5rem;
+    color: var(--ink);
+    text-align: left;
+    background: rgba(255, 255, 255, .74);
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.leg-flight-strip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 163, 255, .34);
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, .07);
+}
+
+.rota-leg.is-alert .leg-flight-strip {
+    border-left-color: var(--danger);
+    background: rgba(255, 255, 255, .9);
+}
+
+.leg-strip-number {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-size: .78rem;
+    font-weight: 900;
+}
+
+.leg-strip-name {
+    color: var(--ink);
+    font-size: clamp(.98rem, 3vw, 1.18rem);
+    font-weight: 900;
+    letter-spacing: -.04em;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+.leg-strip-metric {
+    min-height: 42px;
     display: flex;
     flex-direction: column;
-    gap: .2rem;
+    justify-content: center;
+    gap: .12rem;
+    padding: .32rem .45rem;
+    border-radius: 13px;
+    background: #f8fafc;
 }
 
-.rota-leg .leg-summary-label {
+.leg-strip-metric small {
+    color: var(--muted);
     font-size: .56rem;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    color: #6b7280;
-    font-weight: 700;
+    font-weight: 900;
+    letter-spacing: .12em;
 }
 
-.rota-leg .leg-summary-value {
-    font-size: .78rem;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.25;
+.leg-strip-metric strong {
+    color: var(--ink);
+    font-size: .82rem;
+    line-height: 1.12;
 }
 
-.rota-leg .leg-summary-item-strong .leg-summary-value {
-    font-size: .88rem;
-    color: #0b3b66;
+.leg-strip-maxfuel strong {
+    color: #047857;
 }
 
-.rota-leg .leg-summary-divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin: .45rem 0;
+.leg-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .38rem;
 }
 
-.rota-leg:not(.is-expanded) .leg-edit-content {
+.btn-perf,
+.btn-mb {
+    min-width: 58px;
+    min-height: 32px;
+    height: 100%;
+    background: rgba(255, 255, 255, .74);
+}
+
+/* ==============================
+   LEG EDITOR DIALOG
+   ============================== */
+.leg-editor-dialog {
+    width: min(720px, calc(100% - 28px));
+    border: 1px solid rgba(203, 213, 225, .86);
+    border-radius: 28px;
+    padding: 0;
+    color: var(--ink);
+    background: rgba(255, 255, 255, .92);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+}
+
+.leg-editor-dialog::backdrop {
+    background: rgba(15, 23, 42, .34);
+    backdrop-filter: blur(10px);
+}
+
+.leg-editor-shell {
+    position: relative;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.leg-editor-radar {
     display: none;
 }
 
-.rota-leg.is-expanded .leg-summary {
-    display: none;
-}
-
-/* nome da leg */
-.rota-leg .leg-nome {
-    width: 155px;
-    font-weight: 600;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: .25rem .5rem;
-    background: #fff;
-}
-
-/* botão Performance */
-.rota-leg .btn-perf {
-    min-width: 38px;
-    min-height: 32px;
-    background: #eceeec;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: .25rem .75rem;
-    cursor: pointer;
-    font-size: .75rem;
-}
-
-/* botão MB */
-.rota-leg .btn-mb {
-    min-width: 38px;
-    min-height: 32px;
-    background: #eceeec;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: .25rem .75rem;
-    cursor: pointer;
-    font-size: .75rem;
-}
-
-/* linha de input da leg */
-.row-inputleg {
+.leg-editor-head {
+    position: relative;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: .75rem;
-    border-top: 1px dashed #d1d5db;
-    padding-top: .4rem;
-    margin-top: .4rem;
+    gap: 1rem;
+    margin-bottom: .9rem;
 }
 
-.row-inputleg p {
+.leg-editor-head h2 {
     margin: 0;
-    font-size: .82rem;
+    color: var(--ink);
+    font-size: clamp(1.4rem, 6vw, 2rem);
+    line-height: 1;
+    letter-spacing: -.055em;
 }
 
-.row-inputleg input {
-    width: 110px;
-    height: 33px;
-    text-align: right;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 16px;
+.leg-editor-head p {
+    margin: .28rem 0 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.leg-editor-close {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    color: var(--muted);
     background: #fff;
-}
-
-/* infos (ZFW, TOW, LW) */
-.zfw-info,
-.ramp-weight-info,
-.tow-info,
-.landing-weight-info {
-    font-weight: 500;
-    font-size: .83rem;
-}
-
-/* quando o JS meter .style.color = "red" isto fica por cima,
-   mas se quiseres em classe: */
-.text-alert {
-    color: #dc2626 !important;
-}
-
-#leg-max-fuel,
-#leg-max-traffic-load {
-    font-size: .7rem;
-    color: #4b5563;
-    margin-top: .15rem;
-}
-
-/* botões + e - da leg */
-.rota-leg .menos-leg,
-.rota-leg .mais-leg {
-    min-width: 38px;
-    min-height: 32px;
-    border: none;
-    background: #e5e7eb;
-    border-radius: 8px;
-    padding: .35rem .85rem;
-    font-size: .75rem;
+    font-size: 1.35rem;
     cursor: pointer;
-    margin-top: .4rem;
 }
 
-.rota-leg .menos-leg {
-    background: #fee2e2;
+.leg-editor-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .68rem;
+}
+
+.leg-editor-field {
+    display: grid;
+    gap: .32rem;
+}
+
+.leg-editor-field-wide {
+    grid-column: 1 / -1;
+}
+
+.leg-editor-field span {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: .63rem;
+    font-weight: 900;
+}
+
+.leg-editor-input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    outline: none;
+    padding: 0 .78rem;
+    color: var(--ink);
+    background: #fff;
+    font-size: 1rem;
+    font-weight: 750;
+}
+
+.leg-editor-input:focus {
+    border-color: rgba(0, 163, 255, .38);
+    box-shadow: 0 0 0 4px rgba(0, 163, 255, .08);
+}
+
+.leg-editor-combo {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .45rem;
+}
+
+.leg-editor-telemetry {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: .48rem;
+    margin-top: .9rem;
+}
+
+.leg-editor-telemetry div {
+    min-height: 66px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: .2rem;
+    padding: .58rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: #f8fafc;
+}
+
+.leg-editor-telemetry span {
+    color: var(--muted);
+    font-size: .54rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.leg-editor-telemetry strong {
+    color: var(--ink);
+    font-size: .78rem;
+    line-height: 1.15;
+}
+
+.leg-editor-actions {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    gap: .48rem;
+    margin-top: .9rem;
+}
+
+.leg-editor-actions .menos-leg {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, .10);
+}
+
+.leg-editor-actions .mais-leg,
+.leg-editor-done {
+    color: #fff !important;
+    border-color: transparent !important;
+    background: linear-gradient(135deg, #0284c7, var(--accent)) !important;
+}
+
+/* Legacy hooks kept for existing JS / popup integrations. */
+.row-inputleg,
+.leg-edit-content,
+.leg-summary,
+.rota-leg-header {
+    display: none;
+}
+
+.text-alert {
+    color: var(--danger) !important;
 }
 
 /* ==============================
-   MOBILE
-   ============================== */
-@media (max-width: 520px) {
-    .rota-header {
-        flex-wrap: wrap;
-    }
-
-    .rota-actions {
-        justify-content: flex-end;
-        width: 100%;
-    }
-
-    .row-inputleg input {
-        width: 98px;
-    }
-
-    .rota-leg {
-        margin: .6rem .6rem 1rem;
-    }
-
-    .rota-leg .leg-summary {
-        padding: .4rem;
-    }
-
-    .rota-leg .leg-summary-grid,
-    .rota-leg .leg-summary-weights {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: .3rem .32rem;
-    }
-
-    .rota-leg .leg-summary-item {
-        padding: .24rem .28rem;
-    }
-
-    .rota-leg .leg-summary-label {
-        font-size: .48rem;
-    }
-
-    .rota-leg .leg-summary-value {
-        font-size: .65rem;
-    }
-
-    .rota-leg .leg-summary-item-strong .leg-summary-value {
-        font-size: .74rem;
-    }
-}
-
-/* ==============================
-   POPUP TRAFFICLOAD
+   TRAFFIC LOAD OVERLAY LEGACY
    ============================== */
 #traffic-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(3px);
+    background: rgba(15, 23, 42, .34);
+    backdrop-filter: blur(8px);
     z-index: 999999;
-    display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .popup-box {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    max-width: 500px;
-    width: 90%;
+    width: min(500px, 90%);
     max-height: 90vh;
     overflow-y: auto;
+    border-radius: 22px;
+    padding: 20px;
+    color: var(--ink);
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+/* ==============================
+   MOBILE
+   ============================== */
+@media (max-width: 760px) {
+    .toolbar-rotas,
+    .rota-header {
+        grid-template-columns: 1fr;
+    }
+
+    .toolbar-rotas {
+        padding: .9rem;
+    }
+
+    .fab-add-rota,
+    #btn-nova-rota {
+        width: 100%;
+        height: 48px;
+        border-radius: var(--radius-md);
+    }
+
+    .rota-actions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .rota-card {
+        width: min(100% - 18px, 920px);
+        border-radius: 20px;
+    }
+
+    .rota-header {
+        gap: .55rem;
+        padding: .65rem;
+    }
+
+    .rota-header .nome-rota {
+        min-height: 40px;
+        padding: 0 .55rem;
+        font-size: 1.18rem;
+    }
+
+    .rota-actions {
+        gap: .32rem;
+    }
+
+    .rota-actions button {
+        min-height: 36px;
+        padding: 0 .35rem;
+        font-size: .66rem;
+    }
+
+    .rota-leg {
+        grid-template-columns: 1fr;
+        gap: .45rem;
+        margin: 0 .55rem .58rem;
+    }
+
+    .leg-flight-strip {
+        grid-template-columns: 32px repeat(2, minmax(0, 1fr));
+        gap: .38rem;
+        min-height: 0;
+        padding: .46rem;
+        border-radius: 16px;
+    }
+
+    .leg-strip-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        font-size: .72rem;
+    }
+
+    .leg-strip-name {
+        grid-column: span 2;
+        font-size: 1rem;
+    }
+
+    .leg-strip-metric {
+        min-height: 50px;
+        padding: .38rem .42rem;
+    }
+
+    .leg-strip-metric small {
+        font-size: .5rem;
+        letter-spacing: .09em;
+    }
+
+    .leg-strip-metric strong {
+        font-size: .78rem;
+    }
+
+    .leg-strip-maxfuel {
+        grid-column: span 2;
+    }
+
+    .leg-quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+        gap: .4rem;
+    }
+
+    .btn-perf,
+    .btn-mb {
+        min-height: 38px;
+    }
+
+    .leg-editor-dialog {
+        width: min(100% - 18px, 720px);
+        max-height: calc(100dvh - 18px);
+        border-radius: 22px;
+    }
+
+    .leg-editor-shell {
+        padding: .85rem;
+        max-height: calc(100dvh - 18px);
+        overflow-y: auto;
+    }
+
+    .leg-editor-head {
+        align-items: flex-start;
+        gap: .65rem;
+        margin-bottom: .75rem;
+    }
+
+    .leg-editor-close {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+    }
+
+    .leg-editor-grid,
+    .leg-editor-telemetry {
+        grid-template-columns: 1fr;
+    }
+
+    .leg-editor-input {
+        min-height: 46px;
+    }
+
+    .leg-editor-telemetry div {
+        min-height: 54px;
+    }
+
+    .leg-editor-actions {
+        position: sticky;
+        bottom: -.85rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        padding-top: .65rem;
+        padding-bottom: .85rem;
+        background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.96) 24%);
+    }
 }
