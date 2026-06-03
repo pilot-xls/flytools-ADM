@@ -67,7 +67,7 @@ dialog::backdrop {
 /* tabs */
 .popup-TLoad .tabs {
     display: flex;
-    background: rgb(130, 15, 15);
+    background: rgb(150, 20, 20);
     border-radius: 12px 12px 0 0;
     overflow: hidden;
 }
@@ -89,7 +89,7 @@ dialog::backdrop {
 }
 
 .popup-TLoad .tab.active {
-    background: rgb(200, 30, 30);
+    background: rgb(220, 50, 50);
     color: #fff;
 }
 
@@ -172,7 +172,7 @@ dialog::backdrop {
     height: 52px;
     border-radius: 50%;
     border: none;
-    background: linear-gradient(135deg, rgb(130, 15, 15), rgb(200, 30, 30));
+    background: linear-gradient(135deg, rgb(150, 20, 20), rgb(220, 50, 50));
     color: #fff;
     font-size: 16px;
     font-weight: bold;
@@ -188,7 +188,7 @@ dialog::backdrop {
     height: 52px;
     border-radius: 50%;
     border: none;
-    background: rgb(130, 15, 15);
+    background: rgb(150, 20, 20);
     color: #fff;
     font-size: 16px;
     font-weight: bold;

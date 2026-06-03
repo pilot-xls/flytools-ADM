@@ -177,8 +177,8 @@ template {
 }
 
 :root {
-    --primary: rgb(200 30 30);
-    --secondary: rgb(130 15 15);
+    --primary: rgb(220 50 50);
+    --secondary: rgb(150 20 20);
     --color3: rgb(247 222 197);
     --color4: rgb(127 144 132);
     --white: white;
