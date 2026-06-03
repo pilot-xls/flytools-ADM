@@ -495,10 +495,7 @@ function ensureLegEditorDialog() {
                     <div><span>Max Payload</span><strong id="leg-max-traffic-load">Max: 0 kg</strong></div>
                 </div>
 
-                <div class="leg-editor-actions">
-                    <button type="button" class="menos-leg">− Leg</button>
-                    <button type="button" class="mais-leg">+ Leg</button>
-                </div>
+                <div class="leg-editor-actions"></div>
             </div>
         </form>`;
     document.body.appendChild(dialog);
@@ -610,6 +607,15 @@ function criarLegHTML(leg, legIndex = 0) {
                 <button class="btn-perf" type="button">Perf</button>
                 <button class="btn-mb" type="button">M&amp;B</button>
             </span>
+        </div>
+        <div class="leg-controls">
+            <button class="menos-leg" type="button" title="Remover esta leg">− Leg</button>
+            <div class="leg-connector" aria-hidden="true">
+                <span class="leg-connector-line"></span>
+                <svg class="leg-connector-plane" viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                <span class="leg-connector-line"></span>
+            </div>
+            <button class="mais-leg" type="button" title="Adicionar leg a seguir">+ Leg</button>
         </div>
     </div>`;
 }
@@ -880,38 +886,6 @@ function attachEvents(container, estado, aircraft) {
             return;
         }
 
-        if (e.target.classList.contains("mais-leg")) {
-            rota.legs.splice(legIndex + 1, 0, novaLegData());
-            recomputeRoute(rota, aircraft);
-            guardarEstadoRotas(estado);
-            renderRotas(container, estado);
-            const novaRotaCard = container.querySelectorAll(".rota-card")[rotaIndex];
-            if (novaRotaCard) {
-                novaRotaCard.querySelectorAll(".rota-leg").forEach(div => { div.style.display = "block"; });
-                const toggleBtn = novaRotaCard.querySelector(".toggleBtn");
-                if (toggleBtn) toggleBtn.textContent = "▲";
-            }
-            openLegEditor(rotaIndex, legIndex + 1);
-            return;
-        }
-
-        if (e.target.classList.contains("menos-leg")) {
-            if (rota.legs.length <= 1) return;
-            const nomeLeg = rota.legs[legIndex]?.nome?.trim() || `Leg ${legIndex + 1}`;
-            const querApagar = confirm(`A leg "${nomeLeg}" vai ser eliminada.`);
-            if (!querApagar) return;
-            rota.legs.splice(legIndex, 1);
-            recomputeRoute(rota, aircraft);
-            guardarEstadoRotas(estado);
-            renderRotas(container, estado);
-            const novaRotaCard = container.querySelectorAll(".rota-card")[rotaIndex];
-            if (novaRotaCard) {
-                novaRotaCard.querySelectorAll(".rota-leg").forEach(div => { div.style.display = "block"; });
-                const toggleBtn = novaRotaCard.querySelector(".toggleBtn");
-                if (toggleBtn) toggleBtn.textContent = "▲";
-            }
-            if (rota.legs.length) openLegEditor(rotaIndex, Math.max(0, legIndex - 1));
-        }
     });
 
     // Toggle abrir/fechar legs de uma rota (fecha as outras)
