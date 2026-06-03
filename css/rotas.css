@@ -650,6 +650,65 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     margin-top: .82rem;
 }
 
+/* ── LEG CONTROLS (add / remove below each strip) ── */
+.leg-controls {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .18rem .5rem .32rem;
+}
+
+.leg-controls .menos-leg,
+.leg-controls .mais-leg {
+    flex-shrink: 0;
+    min-height: 22px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 .55rem;
+    font-size: .56rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    background: #fff;
+    color: var(--muted);
+    transition: all .13s ease;
+}
+
+.leg-controls .menos-leg {
+    color: var(--danger);
+    border-color: rgba(224,53,53,.22);
+    background: rgba(224,53,53,.05);
+}
+
+.leg-controls .mais-leg {
+    color: var(--accent-dark);
+    border-color: var(--accent-mid);
+    background: var(--accent-soft);
+}
+
+.leg-controls .menos-leg:hover { background: rgba(224,53,53,.13); }
+.leg-controls .mais-leg:hover  { background: rgba(220,50,50,.16); }
+
+.leg-connector {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    color: var(--muted);
+    opacity: .4;
+}
+
+.leg-connector-line {
+    flex: 1;
+    height: 1px;
+    border-top: 1.5px dashed currentColor;
+}
+
+.leg-connector-plane {
+    flex-shrink: 0;
+    opacity: .7;
+}
+
 .leg-editor-actions .menos-leg {
     color: var(--danger);
     border-color: rgba(224,53,53,.22);
