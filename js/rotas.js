@@ -452,8 +452,6 @@ function ensureLegEditorDialog() {
             <div class="leg-editor-header-bar">
                 <div class="leg-editor-head">
                     <span class="leg-editor-kicker">Leg Editor</span>
-                    <h2 id="leg-editor-title">Editar leg</h2>
-                    <p id="leg-editor-subtitle">Editar dados da leg.</p>
                 </div>
                 <button class="leg-editor-close" value="close" aria-label="Fechar editor">×</button>
             </div>
@@ -521,9 +519,6 @@ function syncLegEditorDialog(dialog, leg) {
     dialog.querySelector(".leg-editor-fuel-ob").placeholder = leg.nextSuggestedFuel || "lb";
     dialog.querySelector(".leg-editor-traffic").value = leg.trafficLoad?.total || "";
     dialog.querySelector(".leg-editor-trip-fuel").value = leg.tripFuel || "";
-
-    const title = dialog.querySelector("#leg-editor-title");
-    if (title) title.textContent = leg.nome?.trim() ? `Editar ${leg.nome.trim()}` : "Editar leg";
 
     dialog.querySelector(".endurance-info").textContent = leg.endurance || "--:--";
     dialog.querySelector(".zfw-info").textContent = leg.zfw || "0 kg";
