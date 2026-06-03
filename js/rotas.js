@@ -569,7 +569,8 @@ function criarLegHTML(leg, legIndex = 0) {
     const statusClass = getLegStatusClass(leg);
     return `
     <div class="rota-leg ${statusClass}" data-leg-index="${legIndex}" style="display:none;">
-        <button class="leg-flight-strip btn-edit-leg" type="button" title="Editar ${summary.nome}" aria-label="Editar ${summary.nome}">
+        <div class="leg-flight-strip" role="button" tabindex="0"
+             title="Editar ${summary.nome}" aria-label="Editar ${summary.nome}">
             <span class="leg-strip-number">${String(legIndex + 1).padStart(2, "0")}</span>
             <span class="leg-strip-name">${summary.nome}</span>
             <span class="leg-strip-metric leg-strip-traffic">
@@ -597,10 +598,10 @@ function criarLegHTML(leg, legIndex = 0) {
                 <strong class="leg-summary-lw">${summary.lw}</strong>
                 <em class="leg-summary-lw-max">max ${summary.maxLw}</em>
             </span>
-        </button>
-        <div class="leg-quick-actions" aria-label="Ações da leg">
-            <button class="btn-perf" type="button">Perf</button>
-            <button class="btn-mb" type="button">M&amp;B</button>
+            <span class="leg-strip-actions" aria-label="Ações da leg">
+                <button class="btn-perf" type="button">Perf</button>
+                <button class="btn-mb" type="button">M&amp;B</button>
+            </span>
         </div>
     </div>`;
 }
@@ -1158,6 +1159,8 @@ function attachEvents(container, estado, aircraft) {
     container.addEventListener("click", (e) => {
         const legStrip = e.target.closest(".leg-flight-strip");
         if (!legStrip) return;
+        // Don't open editor when clicking Perf / M&B
+        if (e.target.closest(".leg-strip-actions")) return;
 
         const rotaCard = legStrip.closest(".rota-card");
         const legEl = legStrip.closest(".rota-leg");
@@ -1166,6 +1169,15 @@ function attachEvents(container, estado, aircraft) {
         const rotaIndex = [...container.querySelectorAll(".rota-card")].indexOf(rotaCard);
         const legIndex = [...rotaCard.querySelectorAll(".rota-leg")].indexOf(legEl);
         openLegEditor(rotaIndex, legIndex);
+    });
+
+    // Keyboard: Enter / Space on leg strip
+    container.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const legStrip = e.target.closest(".leg-flight-strip");
+        if (!legStrip || e.target.closest(".leg-strip-actions")) return;
+        e.preventDefault();
+        legStrip.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
     // UX: selecionar texto dos inputs ao focar + fechar teclado em mobile
