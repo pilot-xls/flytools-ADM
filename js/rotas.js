@@ -504,8 +504,8 @@ function ensureLegEditorDialog() {
         </form>`;
     document.body.appendChild(dialog);
 
-    dialog.addEventListener("close", () => window.scrollTo(0, _legEditorScrollY));
-    dialog.addEventListener("cancel", () => window.scrollTo(0, _legEditorScrollY));
+    dialog.addEventListener("close", () => libertarScroll());
+    dialog.addEventListener("cancel", () => libertarScroll());
 
     return dialog;
 }
@@ -561,8 +561,9 @@ function openLegEditor(rotaIndex, legIndex) {
     syncLegEditorDialog(dialog, leg);
 
     if (!dialog.open) {
-        _legEditorScrollY = window.scrollY;
+        bloquearScroll();
         dialog.showModal();
+        dialog.querySelector(".leg-editor-close")?.focus({ preventScroll: true });
     }
 }
 
