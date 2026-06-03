@@ -440,6 +440,11 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
    LEG EDITOR DIALOG
    ====================================================== */
 .leg-editor-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
     width: min(700px, calc(100% - 24px));
     max-height: calc(100dvh - 40px);
     border: none;
@@ -449,6 +454,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     background: #fff;
     box-shadow: 0 24px 64px rgba(10,15,30,.24);
     overflow: hidden;
+    overscroll-behavior: contain;
 }
 
 .leg-editor-dialog::backdrop {
