@@ -2,20 +2,21 @@
    ROTAS - MINIMAL FUTURISTIC UI
    ============================== */
 :root {
-    --page: #f6f8fb;
-    --panel: rgba(255, 255, 255, .82);
+    --page: #e6e9ef;
+    --panel: rgba(255, 255, 255, .88);
     --panel-solid: #ffffff;
-    --ink: #0f172a;
-    --muted: #64748b;
-    --line: #e2e8f0;
-    --line-strong: #cbd5e1;
-    --accent: #00a3ff;
-    --accent-soft: rgba(0, 163, 255, .10);
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --shadow: 0 18px 50px rgba(15, 23, 42, .08);
-    --shadow-soft: 0 10px 30px rgba(15, 23, 42, .06);
+    --ink: #1f2937;
+    --muted: #5b6475;
+    --line: rgba(31, 41, 55, .15);
+    --line-strong: #b0b8c4;
+    --accent: rgb(224, 127, 30);
+    --accent-dark: rgb(116, 66, 16);
+    --accent-soft: rgba(224, 127, 30, .12);
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --shadow: 0 18px 50px rgba(31, 41, 55, .12);
+    --shadow-soft: 0 8px 20px rgba(31, 41, 55, .10);
     --radius-xl: 24px;
     --radius-lg: 18px;
     --radius-md: 14px;
@@ -36,9 +37,9 @@ body {
     color: var(--ink);
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     background:
-        radial-gradient(circle at 12% 0%, rgba(0, 163, 255, .10), transparent 32rem),
-        radial-gradient(circle at 90% 12%, rgba(16, 185, 129, .08), transparent 28rem),
-        linear-gradient(180deg, #fbfdff 0%, var(--page) 48%, #eef3f8 100%);
+        radial-gradient(1000px 600px at 10% 0%, #dde6f7 0%, transparent 55%),
+        radial-gradient(800px 500px at 100% 10%, #e4e8f5 0%, transparent 50%),
+        var(--page);
 }
 
 button,
@@ -112,8 +113,8 @@ button {
     border: 0;
     border-radius: 17px;
     color: #fff;
-    background: linear-gradient(135deg, #0284c7, var(--accent));
-    box-shadow: 0 14px 28px rgba(0, 163, 255, .22);
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    box-shadow: 0 14px 28px rgba(224, 127, 30, .28);
     font-size: 1.7rem;
     font-weight: 800;
     cursor: pointer;
@@ -122,7 +123,7 @@ button {
 
 #btn-nova-rota:hover {
     transform: translateY(-1px);
-    box-shadow: 0 18px 34px rgba(0, 163, 255, .28);
+    box-shadow: 0 18px 34px rgba(224, 127, 30, .38);
 }
 
 /* ==============================
@@ -163,9 +164,9 @@ button {
 }
 
 .rota-header .nome-rota:focus {
-    border-color: rgba(0, 163, 255, .32);
+    border-color: rgba(224, 127, 30, .40);
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(0, 163, 255, .08);
+    box-shadow: 0 0 0 4px rgba(224, 127, 30, .10);
 }
 
 .rota-actions {
@@ -197,13 +198,13 @@ button {
 .leg-editor-actions button:hover,
 .leg-editor-load-btn:hover {
     transform: translateY(-1px);
-    border-color: rgba(0, 163, 255, .32);
-    color: #0369a1;
+    border-color: rgba(224, 127, 30, .40);
+    color: var(--accent-dark);
     background: #fff;
 }
 
 .btn-fcalc {
-    color: #0369a1 !important;
+    color: var(--accent-dark) !important;
     background: var(--accent-soft) !important;
 }
 
@@ -219,7 +220,7 @@ button {
 
 .toggleBtn {
     min-width: 42px;
-    color: var(--accent) !important;
+    color: var(--accent-dark) !important;
     background: #fff !important;
 }
 
@@ -254,9 +255,9 @@ button {
 
 .leg-flight-strip:hover {
     transform: translateY(-1px);
-    border-color: rgba(0, 163, 255, .34);
+    border-color: rgba(224, 127, 30, .40);
     background: #fff;
-    box-shadow: 0 14px 30px rgba(15, 23, 42, .07);
+    box-shadow: 0 14px 30px rgba(31, 41, 55, .09);
 }
 
 .rota-leg.is-alert .leg-flight-strip {
@@ -443,8 +444,8 @@ button {
 }
 
 .leg-editor-input:focus {
-    border-color: rgba(0, 163, 255, .38);
-    box-shadow: 0 0 0 4px rgba(0, 163, 255, .08);
+    border-color: rgba(224, 127, 30, .45);
+    box-shadow: 0 0 0 4px rgba(224, 127, 30, .10);
 }
 
 .leg-editor-combo {
@@ -504,7 +505,7 @@ button {
 .leg-editor-done {
     color: #fff !important;
     border-color: transparent !important;
-    background: linear-gradient(135deg, #0284c7, var(--accent)) !important;
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent)) !important;
 }
 
 /* Legacy hooks kept for existing JS / popup integrations. */

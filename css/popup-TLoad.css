@@ -38,7 +38,7 @@ dialog::backdrop {
 
     /* 2. Estilos visuais que já tinhas */
     background: #fff;
-    border-radius: 12px;
+    border-radius: 18px;
     border: none;
     padding: 0px;
     box-shadow: 10px 15px 20px rgba(0, 0, 0, 0.3);
@@ -67,20 +67,30 @@ dialog::backdrop {
 /* tabs */
 .popup-TLoad .tabs {
     display: flex;
-    background: #333;
+    background: rgb(116, 66, 16);
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
 }
 
 .popup-TLoad .tab {
     flex: 1;
     padding: 12px;
     text-align: center;
-    color: #fff;
+    color: rgba(255, 255, 255, .80);
     cursor: pointer;
     font-weight: bold;
+    font-size: 13px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.popup-TLoad .tab:hover {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
 }
 
 .popup-TLoad .tab.active {
-    background: #555;
+    background: rgb(224, 127, 30);
+    color: #fff;
 }
 
 .popup-TLoad .tab-content {
@@ -162,12 +172,12 @@ dialog::backdrop {
     height: 52px;
     border-radius: 50%;
     border: none;
-    background: #d40000;
+    background: linear-gradient(135deg, rgb(116, 66, 16), rgb(224, 127, 30));
     color: #fff;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(224, 127, 30, .40);
 }
 
 .popup-TLoad .floating-edit {
@@ -178,12 +188,12 @@ dialog::backdrop {
     height: 52px;
     border-radius: 50%;
     border: none;
-    background: #3071c5;
+    background: rgb(116, 66, 16);
     color: #fff;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(116, 66, 16, .35);
 }
 
 /* contadores */
