@@ -500,8 +500,9 @@ function ensureLegEditorDialog() {
         </form>`;
     document.body.appendChild(dialog);
 
-    dialog.addEventListener("close", libertarScroll);
-    dialog.addEventListener("cancel", libertarScroll);
+    const _onClose = () => { libertarScroll(); disablePopupZoomBlock(); };
+    dialog.addEventListener("close", _onClose);
+    dialog.addEventListener("cancel", _onClose);
 
     return dialog;
 }
@@ -558,6 +559,7 @@ function openLegEditor(rotaIndex, legIndex) {
 
     if (!dialog.open) {
         bloquearScroll();
+        enablePopupZoomBlock();
         dialog.showModal();
         dialog.querySelector(".leg-editor-close")?.focus({ preventScroll: true });
     }

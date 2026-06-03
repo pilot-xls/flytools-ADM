@@ -318,22 +318,22 @@ function disablePopupZoomBlock() {
     document.removeEventListener("touchend", onTouchEndBlockDoubleTap, { passive: false });
 }
 
-function onTouchMoveBlockPinch(e) {
-    // Só bloqueia quando o popup está mesmo aberto
-    if (!window.popupTLoad || !window.popupTLoad.open) return;
+function _anyModalOpen() {
+    return (window.popupTLoad?.open) || (document.querySelector('.leg-editor-dialog')?.open);
+}
 
-    // pinch = mais do que 1 touch
+function onTouchMoveBlockPinch(e) {
+    if (!_anyModalOpen()) return;
     if (e.touches && e.touches.length > 1) {
         e.preventDefault();
     }
 }
 
 function onTouchEndBlockDoubleTap(e) {
-    if (!window.popupTLoad || !window.popupTLoad.open) return;
-
+    if (!_anyModalOpen()) return;
     const now = Date.now();
     if (now - lastTouchEnd <= 300) {
-        e.preventDefault(); // impede double-tap zoom
+        e.preventDefault();
     }
     lastTouchEnd = now;
 }

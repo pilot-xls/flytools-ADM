@@ -591,7 +591,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     padding: 0 .72rem;
     color: var(--ink);
     background: #f5f7fc;
-    font-size: .95rem;
+    font-size: 1rem;
     font-weight: 700;
     font-family: var(--font-num);
     transition: all .13s ease;
