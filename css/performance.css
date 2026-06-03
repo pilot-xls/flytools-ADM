@@ -434,7 +434,7 @@ input:disabled {
 #calc-btn {
     position: fixed;
     right: 16px;
-    bottom: 16px;
+    bottom: calc(75px + 16px);
     width: 56px;
     height: 56px;
     border-radius: 50%;
