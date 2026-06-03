@@ -31,7 +31,7 @@
 
 * { box-sizing: border-box; }
 
-html { background: var(--page); }
+html { background: var(--page); overflow-x: hidden; }
 
 body {
     min-height: 100vh;

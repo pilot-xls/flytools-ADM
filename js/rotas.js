@@ -500,8 +500,8 @@ function ensureLegEditorDialog() {
         </form>`;
     document.body.appendChild(dialog);
 
-    dialog.addEventListener("close", () => window.scrollTo({ top: _legEditorScrollY, behavior: "instant" }));
-    dialog.addEventListener("cancel", () => window.scrollTo({ top: _legEditorScrollY, behavior: "instant" }));
+    dialog.addEventListener("close", () => window.scrollTo({ left: 0, top: _legEditorScrollY, behavior: "instant" }));
+    dialog.addEventListener("cancel", () => window.scrollTo({ left: 0, top: _legEditorScrollY, behavior: "instant" }));
 
     return dialog;
 }
