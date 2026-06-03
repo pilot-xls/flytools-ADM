@@ -500,8 +500,12 @@ function ensureLegEditorDialog() {
         </form>`;
     document.body.appendChild(dialog);
 
-    dialog.addEventListener("close", () => window.scrollTo({ left: 0, top: _legEditorScrollY, behavior: "instant" }));
-    dialog.addEventListener("cancel", () => window.scrollTo({ left: 0, top: _legEditorScrollY, behavior: "instant" }));
+    const _restoreScroll = () => {
+        document.body.style.overflow = '';
+        window.scrollTo({ left: 0, top: _legEditorScrollY, behavior: "instant" });
+    };
+    dialog.addEventListener("close", _restoreScroll);
+    dialog.addEventListener("cancel", _restoreScroll);
 
     return dialog;
 }
@@ -558,6 +562,7 @@ function openLegEditor(rotaIndex, legIndex) {
 
     if (!dialog.open) {
         _legEditorScrollY = window.scrollY;
+        document.body.style.overflow = 'hidden';
         dialog.showModal();
         dialog.querySelector(".leg-editor-close")?.focus({ preventScroll: true });
     }
