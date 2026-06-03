@@ -498,7 +498,6 @@ function ensureLegEditorDialog() {
                 <div class="leg-editor-actions">
                     <button type="button" class="menos-leg">− Leg</button>
                     <button type="button" class="mais-leg">+ Leg</button>
-                    <button class="leg-editor-done" value="close">Concluído</button>
                 </div>
             </div>
         </form>`;
