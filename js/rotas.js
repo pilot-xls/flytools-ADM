@@ -503,6 +503,10 @@ function ensureLegEditorDialog() {
             </div>
         </form>`;
     document.body.appendChild(dialog);
+
+    dialog.addEventListener("close", () => window.scrollTo(0, _legEditorScrollY));
+    dialog.addEventListener("cancel", () => window.scrollTo(0, _legEditorScrollY));
+
     return dialog;
 }
 
@@ -556,9 +560,13 @@ function openLegEditor(rotaIndex, legIndex) {
     dialog.dataset.legIndex = String(legIndex);
     syncLegEditorDialog(dialog, leg);
 
-    if (!dialog.open) dialog.showModal();
-    dialog.querySelector(".leg-editor-nome")?.focus();
+    if (!dialog.open) {
+        _legEditorScrollY = window.scrollY;
+        dialog.showModal();
+    }
 }
+
+let _legEditorScrollY = 0;
 
 // -------------------------------------------------------
 // 5. RENDERIZAÇÃO DE LEGS E ROTAS
