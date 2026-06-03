@@ -819,7 +819,19 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     }
 
     .leg-editor-telemetry {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .leg-editor-telemetry div:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .leg-editor-telemetry span {
+        font-size: .58rem;
+    }
+
+    .leg-editor-telemetry strong {
+        font-size: .82rem;
     }
 
     .leg-editor-input {
