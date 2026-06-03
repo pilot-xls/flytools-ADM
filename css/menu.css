@@ -170,7 +170,7 @@ footer {
 }
 
 .footer-nav__item.active {
-    color: rgb(220, 50, 50);
+    color: #fff;
 }
 
 .footer-nav__icon {
@@ -186,7 +186,7 @@ footer {
 }
 
 .footer-nav__item.active .footer-nav__icon {
-    filter: brightness(0) saturate(100%) invert(22%) sepia(100%) saturate(1600%) hue-rotate(338deg) brightness(100%);
+    filter: brightness(0) invert(1);
 }
 
 .footer-nav__label {
@@ -220,8 +220,8 @@ footer {
 }
 
 .footer-nav__item--home.active .footer-nav__home-bubble {
-    background: rgb(220, 50, 50);
-    border-color: rgb(220, 50, 50);
+    background: #444;
+    border-color: #666;
 }
 
 .footer-nav__home-svg {
