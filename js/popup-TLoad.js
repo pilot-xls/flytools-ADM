@@ -343,27 +343,27 @@ function onTouchEndBlockDoubleTap(e) {
 
 
 /*>>>>>>>>SCROLL<<<<<<<<<<*/
-let scrollYPos = 0; // Variável global para guardar o scroll
+let scrollYPos = 0;
+let _scrollLockDepth = 0;
 
 function bloquearScroll() {
-    // 1. Guarda a posição atual do scroll
-    scrollYPos = window.scrollY;
-
-    // 2. Aplica o estilo "congelado" ao body
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollYPos}px`;
-    document.body.style.width = '100%';
-    document.body.style.overflowY = 'scroll'; // Evita que a página "salte" ao esconder a scrollbar
+    if (_scrollLockDepth === 0) {
+        scrollYPos = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollYPos}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflowY = 'scroll';
+    }
+    _scrollLockDepth++;
 }
 
 function libertarScroll() {
-    // 1. Remove os estilos de bloqueio
+    _scrollLockDepth = Math.max(0, _scrollLockDepth - 1);
+    if (_scrollLockDepth > 0) return;
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
     document.body.style.overflowY = '';
-
-    // 2. Devolve o utilizador à posição exata onde estava
     window.scrollTo(0, scrollYPos);
 }
 
