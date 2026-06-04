@@ -1204,6 +1204,7 @@ function attachEvents(container, estado, aircraft) {
     });
 
     document.addEventListener("touchstart", event => {
+        if (event.target.closest('dialog[open]')) return;
         if (!(event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA")) {
             const active = document.activeElement;
             if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {

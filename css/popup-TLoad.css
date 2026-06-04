@@ -916,4 +916,11 @@ dialog::backdrop {
     font-weight: bold;
 }
 
+/* Prevent iOS auto-zoom (triggers when font-size < 16px) */
+.popup-TLoad #tab3 .inputData input,
+.popup-TLoad #tab4 #cargo-layout input,
+.popup-TLoad #tab4 #Info-fwd-cargo-arm input,
+.popup-TLoad #tab4 #Info-rear-cargo-arm input {
+    font-size: 1rem;
+}
 
