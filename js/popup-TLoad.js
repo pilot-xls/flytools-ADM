@@ -303,8 +303,8 @@ let lastTouchEnd = 0;
 function enablePopupZoomBlock() {
     if (_zoomBlockDepth === 0 && !popupZoomBlockOn) {
         popupZoomBlockOn = true;
-        document.addEventListener(“touchmove”, onTouchMoveBlockPinch, { passive: false });
-        document.addEventListener(“touchend”, onTouchEndBlockDoubleTap, { passive: false });
+        document.addEventListener("touchmove", onTouchMoveBlockPinch, { passive: false });
+        document.addEventListener("touchend", onTouchEndBlockDoubleTap, { passive: false });
     }
     _zoomBlockDepth++;
 }
@@ -314,8 +314,8 @@ function disablePopupZoomBlock() {
     if (_zoomBlockDepth > 0) return;
     if (popupZoomBlockOn) {
         popupZoomBlockOn = false;
-        document.removeEventListener(“touchmove”, onTouchMoveBlockPinch, { passive: false });
-        document.removeEventListener(“touchend”, onTouchEndBlockDoubleTap, { passive: false });
+        document.removeEventListener("touchmove", onTouchMoveBlockPinch, { passive: false });
+        document.removeEventListener("touchend", onTouchEndBlockDoubleTap, { passive: false });
     }
 }
 
