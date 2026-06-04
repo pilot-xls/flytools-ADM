@@ -647,6 +647,10 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     font-size: .75rem;
     line-height: 1.15;
     font-family: var(--font-num);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
 .leg-editor-actions {
