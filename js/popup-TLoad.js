@@ -297,25 +297,26 @@ btnEnter.addEventListener("click", () => {
 /* ---------------------  “zoom”  ------------------- */
 
 let popupZoomBlockOn = false;
+let _zoomBlockDepth = 0;
 let lastTouchEnd = 0;
 
 function enablePopupZoomBlock() {
-    if (popupZoomBlockOn) return;
-    popupZoomBlockOn = true;
-
-    // Bloqueia pinch zoom (gesto com 2 dedos)
-    document.addEventListener("touchmove", onTouchMoveBlockPinch, { passive: false });
-
-    // Bloqueia double-tap zoom
-    document.addEventListener("touchend", onTouchEndBlockDoubleTap, { passive: false });
+    if (_zoomBlockDepth === 0 && !popupZoomBlockOn) {
+        popupZoomBlockOn = true;
+        document.addEventListener(“touchmove”, onTouchMoveBlockPinch, { passive: false });
+        document.addEventListener(“touchend”, onTouchEndBlockDoubleTap, { passive: false });
+    }
+    _zoomBlockDepth++;
 }
 
 function disablePopupZoomBlock() {
-    if (!popupZoomBlockOn) return;
-    popupZoomBlockOn = false;
-
-    document.removeEventListener("touchmove", onTouchMoveBlockPinch, { passive: false });
-    document.removeEventListener("touchend", onTouchEndBlockDoubleTap, { passive: false });
+    _zoomBlockDepth = Math.max(0, _zoomBlockDepth - 1);
+    if (_zoomBlockDepth > 0) return;
+    if (popupZoomBlockOn) {
+        popupZoomBlockOn = false;
+        document.removeEventListener(“touchmove”, onTouchMoveBlockPinch, { passive: false });
+        document.removeEventListener(“touchend”, onTouchEndBlockDoubleTap, { passive: false });
+    }
 }
 
 function _anyModalOpen() {
