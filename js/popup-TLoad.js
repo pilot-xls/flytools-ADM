@@ -334,7 +334,9 @@ function onTouchEndBlockDoubleTap(e) {
     if (!_anyModalOpen()) return;
     const now = Date.now();
     if (now - lastTouchEnd <= 300) {
-        e.preventDefault();
+        const tag = (e.target?.tagName || '').toUpperCase();
+        const isInteractive = ['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'A', 'LABEL'].includes(tag);
+        if (!isInteractive) e.preventDefault();
     }
     lastTouchEnd = now;
 }
