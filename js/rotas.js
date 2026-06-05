@@ -453,7 +453,7 @@ function ensureLegEditorDialog() {
                 <div class="leg-editor-head">
                     <span class="leg-editor-kicker">Leg Editor</span>
                 </div>
-                <button class="leg-editor-close" value="close" aria-label="Fechar editor">×</button>
+                <button class="leg-editor-close" value="close" formnovalidate aria-label="Fechar editor">×</button>
             </div>
 
             <div class="leg-editor-body">
@@ -473,7 +473,7 @@ function ensureLegEditorDialog() {
                     <label class="leg-editor-field">
                         <span>Traffic Load</span>
                         <div class="leg-editor-combo">
-                            <input class="leg-editor-input leg-editor-traffic traffic-load-input" placeholder="kg" inputmode="numeric" pattern="[0-9]*">
+                            <input class="leg-editor-input leg-editor-traffic" placeholder="kg" inputmode="numeric" pattern="[0-9]*">
                             <button type="button" class="leg-editor-load-btn">Load</button>
                         </div>
                     </label>
