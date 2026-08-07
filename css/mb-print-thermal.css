@@ -1,0 +1,266 @@
+/* =====================================================
+   mb-print-thermal.css
+   Layout dedicado para impressoras térmicas de 80mm
+   (ex.: GOOJPRT MTP-3). Isto NÃO usa window.print()/@page —
+   a página é capturada como imagem (html2canvas) e essa
+   imagem é enviada para a impressora via Bluetooth.
+   Por isso todo o desenho está em mm reais, sem regras
+   @media print.
+   ===================================================== */
+
+:root {
+    --thermal-paper-width: 80mm;
+    --thermal-side-padding: 4mm;
+}
+
+body.mb-thermal-body {
+    margin: 0;
+    background: #d8d8d8;
+    color: #111;
+}
+
+.mb-thermal-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.mb-thermal-toolbar .btn-secondary {
+    background: #5b6570;
+}
+
+.mb-thermal-hint {
+    max-width: 480px;
+    margin: 10px auto 0;
+    padding: 0 12px;
+    font-size: 12px;
+    color: #444;
+    text-align: center;
+}
+
+/* A "folha" com a largura real do papel, para a pré-visualização
+   já corresponder ao tamanho físico do talão. */
+.mb-thermal-page {
+    width: var(--thermal-paper-width);
+    margin: 14px auto 24px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.mb-thermal-capture {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 3mm var(--thermal-side-padding) 4mm;
+    background: #fff;
+    text-align: center;
+}
+
+/* --- Cabeçalho --- */
+#mb-table #heading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 0 2mm 0;
+}
+
+.mb-thermal-logo {
+    width: 20mm;
+    height: auto;
+    margin: 0 0 1mm 0;
+}
+
+#mb-table #heading h2 {
+    margin: 0;
+    font-size: 11pt;
+    line-height: 1.15;
+}
+
+#mb-table #heading p {
+    margin: 0;
+    font-size: 8pt;
+    line-height: 1.2;
+}
+
+#mbPrintTimestamp {
+    margin-top: 1mm;
+    font-size: 6.5pt;
+    color: #444;
+    text-align: center;
+}
+
+/* --- Tabela ---
+   Mantém as tags <table>/<tr>/<td> (o mb.js usa closest("tr") e
+   td:last-child para MAC%/limites/avisos), mas com display:grid
+   cada linha fica em 2 "andares": item+peso em cima, momento+info
+   pequenos por baixo — isto é o que torna a tabela legível a 72mm
+   de largura útil em vez das 4 colunas finas do layout A4. */
+.mb-thermal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 3mm 0;
+}
+
+.mb-thermal-table thead {
+    display: none;
+}
+
+.mb-thermal-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 2mm;
+    row-gap: 0.3mm;
+    padding: 1mm 0;
+    border-bottom: 0.3mm solid #dcdcdc;
+}
+
+.mb-thermal-table tr.gray-row {
+    background: #f0f0f0;
+    border-bottom: 0.3mm solid #bfbfbf;
+}
+
+/* célula 1 = nome do item (linha 1, esquerda) */
+.mb-thermal-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: left;
+    font-size: 8.5pt;
+    font-weight: 600;
+    padding: 0;
+}
+
+.mb-thermal-table td:nth-child(1) label {
+    font-size: 8.5pt;
+    font-weight: 600;
+}
+
+/* célula 2 = peso (linha 1, direita, em destaque) */
+.mb-thermal-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    font-size: 9.5pt;
+    font-weight: 700;
+    padding: 0;
+}
+
+/* célula 3 = momento (linha 2, esquerda, pequeno) */
+.mb-thermal-table td:nth-child(3) {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+    font-size: 6.6pt;
+    color: #555;
+    font-weight: 400;
+    padding: 0;
+}
+
+.mb-thermal-table td:nth-child(3)::before {
+    content: "Mom ";
+}
+
+/* célula 4 = INFO (MAC%, limites, avisos) (linha 2, direita, pequeno) */
+.mb-thermal-table td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+    font-size: 6.6pt;
+    color: #555;
+    padding: 0;
+}
+
+.mb-thermal-table td:nth-child(4):empty {
+    display: none;
+}
+
+/* inputs, antes de serem convertidos em valores estáticos */
+.mb-thermal-table input {
+    width: 100%;
+    max-width: 26mm;
+    height: 5mm;
+    text-align: right;
+    font-size: 9.5pt;
+    font-weight: 700;
+    border: 1px dotted #bcbcbc;
+    border-radius: 1.5mm;
+    padding: 0 1mm;
+    box-sizing: border-box;
+}
+
+/* valor estático (gerado por mb-print-thermal.js) que substitui o input */
+.mb-thermal-table .mb-static-value {
+    display: block;
+    width: 100%;
+    text-align: right;
+    font-size: 9.5pt;
+    font-weight: 700;
+}
+
+/* avisos de limite excedido (classes usadas pelo mb.js: checkLimit()) */
+.mb-thermal-table tr.limit-exceed {
+    background: #ffe3e3;
+    border-bottom: 0.3mm solid #e08a8a;
+}
+
+.mb-thermal-table .info-warning {
+    color: #c0102a;
+    font-weight: 700;
+}
+
+/* --- Envelope CG ---
+   Largura máxima disponível (toda a área útil) para o gráfico
+   ficar o maior possível — é o elemento mais importante de ler
+   rapidamente na cabine. */
+.mb-thermal-envelope {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0;
+}
+
+.mb-thermal-envelope #loadsheet-base {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.mb-thermal-envelope #cg-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- Pré-visualização da imagem gerada --- */
+.mb-thermal-preview-wrap {
+    max-width: 480px;
+    margin: 0 auto 32px;
+    padding: 0 12px;
+    text-align: center;
+}
+
+.mb-thermal-preview-wrap h3 {
+    font-size: 13px;
+    margin: 0 0 4px;
+}
+
+.mb-thermal-preview-info {
+    font-size: 11px;
+    color: #555;
+    margin: 0 0 8px;
+}
+
+.mb-thermal-preview-img {
+    display: block;
+    width: var(--thermal-paper-width);
+    max-width: 100%;
+    margin: 0 auto 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    image-rendering: pixelated;
+}
