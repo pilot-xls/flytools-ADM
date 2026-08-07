@@ -96,10 +96,12 @@ body.mb-thermal-body {
 
 /* --- Tabela ---
    Mantém as tags <table>/<tr>/<td> (o mb.js usa closest("tr") e
-   td:last-child para MAC%/limites/avisos), mas com display:grid
-   cada linha fica em 2 "andares": item+peso em cima, momento+info
-   pequenos por baixo — isto é o que torna a tabela legível a 72mm
-   de largura útil em vez das 4 colunas finas do layout A4. */
+   td:last-child para MAC%/limites/avisos). O layout de 2 "andares"
+   por linha (item+peso em cima, momento+info pequenos por baixo)
+   é feito com FLOAT, não com display:grid — o html2canvas tem
+   suporte muito fraco/instável para CSS Grid (linhas ficavam com
+   alturas erradas e texto fora da caixa visível na imagem gerada);
+   float é layout antigo e o html2canvas trata-o de forma fiável. */
 .mb-thermal-table {
     width: 100%;
     border-collapse: collapse;
@@ -111,10 +113,8 @@ body.mb-thermal-body {
 }
 
 .mb-thermal-table tbody tr {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    column-gap: 2mm;
-    row-gap: 0.3mm;
+    display: block;
+    overflow: hidden;
     padding: 1mm 0;
     border-bottom: 0.3mm solid #dcdcdc;
 }
@@ -124,14 +124,22 @@ body.mb-thermal-body {
     border-bottom: 0.3mm solid #bfbfbf;
 }
 
-/* célula 1 = nome do item (linha 1, esquerda) */
+.mb-thermal-table td {
+    display: block;
+    padding: 0;
+}
+
+/* célula 1 = nome do item (linha 1, esquerda).
+   Largura explícita em % (em vez de deixar o float "encolher ao
+   conteúdo") para o html2canvas não ter ambiguidade nenhuma a
+   calcular a caixa. */
 .mb-thermal-table td:nth-child(1) {
-    grid-column: 1;
-    grid-row: 1;
+    float: left;
+    width: 58%;
+    box-sizing: border-box;
     text-align: left;
     font-size: 8.5pt;
     font-weight: 600;
-    padding: 0;
 }
 
 .mb-thermal-table td:nth-child(1) label {
@@ -141,23 +149,26 @@ body.mb-thermal-body {
 
 /* célula 2 = peso (linha 1, direita, em destaque) */
 .mb-thermal-table td:nth-child(2) {
-    grid-column: 2;
-    grid-row: 1;
+    float: right;
+    width: 40%;
+    box-sizing: border-box;
     text-align: right;
     font-size: 9.5pt;
     font-weight: 700;
-    padding: 0;
 }
 
-/* célula 3 = momento (linha 2, esquerda, pequeno) */
+/* célula 3 = momento (linha 2, esquerda, pequeno).
+   clear:both empurra-a para debaixo da linha 1 (item + peso). */
 .mb-thermal-table td:nth-child(3) {
-    grid-column: 1;
-    grid-row: 2;
+    clear: both;
+    float: left;
+    width: 58%;
+    box-sizing: border-box;
     text-align: left;
     font-size: 6.6pt;
     color: #555;
     font-weight: 400;
-    padding: 0;
+    padding-top: 0.3mm;
 }
 
 .mb-thermal-table td:nth-child(3)::before {
@@ -166,12 +177,13 @@ body.mb-thermal-body {
 
 /* célula 4 = INFO (MAC%, limites, avisos) (linha 2, direita, pequeno) */
 .mb-thermal-table td:nth-child(4) {
-    grid-column: 2;
-    grid-row: 2;
+    float: right;
+    width: 40%;
+    box-sizing: border-box;
     text-align: right;
     font-size: 6.6pt;
     color: #555;
-    padding: 0;
+    padding-top: 0.3mm;
 }
 
 .mb-thermal-table td:nth-child(4):empty {
