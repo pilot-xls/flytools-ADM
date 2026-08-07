@@ -142,10 +142,19 @@ async function gerarImagemTermica() {
         if (btn) btn.textContent = "A gerar...";
         atualizarDataHoraImpressao();
 
+        // foreignObjectRendering:true muda o motor do html2canvas: em vez de
+        // ele próprio tentar "adivinhar" o layout e desenhar texto/caixas à
+        // mão (onde temos andado a apanhar bugs — grid, float, agora texto
+        // a desaparecer mesmo em tabela nativa), passa a pedir ao PRÓPRIO
+        // Safari para desenhar o conteúdo (via <svg><foreignObject>) e só
+        // tira a "fotografia" a esse resultado. Corrige de uma vez todas
+        // estas classes de bug, à custa de exigir que o browser suporte
+        // bem foreignObject (o Safari no iOS suporta).
         const canvas = await html2canvas(capture, {
             backgroundColor: "#ffffff",
             scale: 3,
-            useCORS: true
+            useCORS: true,
+            foreignObjectRendering: true
         });
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
