@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Teste Bluetooth — MTP-3</title>
+        <style>
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                padding: 16px;
+                font-family: -apple-system, system-ui, sans-serif;
+                background: #f2f2f2;
+                color: #111;
+            }
+            h1 {
+                font-size: 18px;
+                margin: 0 0 4px;
+            }
+            p.hint {
+                font-size: 13px;
+                color: #555;
+                margin: 0 0 16px;
+            }
+            .status {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                margin-bottom: 16px;
+                padding: 10px 12px;
+                background: #fff;
+                border-radius: 8px;
+            }
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #c0102a;
+                flex-shrink: 0;
+            }
+            .dot.ok { background: #1a9c4a; }
+            button {
+                display: block;
+                width: 100%;
+                padding: 14px;
+                margin-bottom: 10px;
+                font-size: 16px;
+                font-weight: 600;
+                border: none;
+                border-radius: 10px;
+                background: #1d4e89;
+                color: #fff;
+            }
+            button:disabled {
+                background: #b7c3d1;
+            }
+            button.secondary {
+                background: #5b6570;
+            }
+            .warning {
+                background: #fff3cd;
+                border: 1px solid #ffe08a;
+                color: #6b5300;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+            .log-title {
+                font-size: 12px;
+                color: #555;
+                margin: 16px 0 6px;
+            }
+            #log {
+                background: #111;
+                color: #7fffa0;
+                font-family: ui-monospace, Menlo, monospace;
+                font-size: 11px;
+                padding: 10px;
+                border-radius: 8px;
+                min-height: 120px;
+                max-height: 300px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Teste Bluetooth — GOOJPRT MTP-3</h1>
+        <p class="hint">
+            Isto tem de ser aberto no Bluefy (não no Safari) — o Safari não
+            suporta Bluetooth em páginas web. Confirma que a impressora está
+            ligada e não está ligada a mais nenhum telemóvel/app antes de
+            carregares em "Ligar".
+        </p>
+
+        <div id="apiWarning" class="warning" hidden>
+            Este browser não suporta Web Bluetooth. Abre esta página dentro
+            da app "Bluefy — Web BLE Browser" (App Store), não no Safari.
+        </div>
+
+        <div class="status">
+            <div id="statusDot" class="dot"></div>
+            <span id="statusText">Desligado</span>
+        </div>
+
+        <button id="btnConnect" type="button">1. Ligar à impressora</button>
+        <button id="btnPrint" type="button" disabled>2. Imprimir "Ola"</button>
+        <button id="btnDisconnect" type="button" class="secondary" disabled>Desligar</button>
+
+        <div class="log-title">Registo</div>
+        <div id="log"></div>
+
+        <script>
+            // Service/characteristics confirmados no nRF Connect para a
+            // MTP-3B8D74: serviço FF00, escrita FF02, notificações
+            // FF01/FF03 — mesmo padrão da biblioteca jeffrafter/phomemo.
+            const SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb";
+            const WRITE_CHAR_UUID = "0000ff02-0000-1000-8000-00805f9b34fb";
+            const NOTIFY_CHAR_UUIDS = [
+                "0000ff01-0000-1000-8000-00805f9b34fb",
+                "0000ff03-0000-1000-8000-00805f9b34fb"
+            ];
+            const NAME_PREFIX = "MTP-3";
+
+            const statusDot = document.getElementById("statusDot");
+            const statusText = document.getElementById("statusText");
+            const btnConnect = document.getElementById("btnConnect");
+            const btnPrint = document.getElementById("btnPrint");
+            const btnDisconnect = document.getElementById("btnDisconnect");
+            const logEl = document.getElementById("log");
+            const apiWarning = document.getElementById("apiWarning");
+
+            let device = null;
+            let writeChar = null;
+
+            function log(msg) {
+                const time = new Date().toLocaleTimeString("pt-PT");
+                logEl.textContent += `[${time}] ${msg}\n`;
+                logEl.scrollTop = logEl.scrollHeight;
+                console.log(msg);
+            }
+
+            function setStatus(connected, text) {
+                statusDot.classList.toggle("ok", connected);
+                statusText.textContent = text;
+                btnPrint.disabled = !connected;
+                btnDisconnect.disabled = !connected;
+                btnConnect.disabled = connected;
+            }
+
+            if (!navigator.bluetooth) {
+                apiWarning.hidden = false;
+                btnConnect.disabled = true;
+                log("navigator.bluetooth não existe neste browser.");
+            }
+
+            btnConnect.addEventListener("click", async () => {
+                try {
+                    log(`A procurar dispositivos com nome a começar por "${NAME_PREFIX}"...`);
+                    device = await navigator.bluetooth.requestDevice({
+                        filters: [{ namePrefix: NAME_PREFIX }],
+                        optionalServices: [SERVICE_UUID]
+                    });
+                    log(`Selecionado: ${device.name || "(sem nome)"} — a ligar...`);
+
+                    device.addEventListener("gattserverdisconnected", () => {
+                        log("Ligação perdida.");
+                        setStatus(false, "Desligado");
+                        writeChar = null;
+                    });
+
+                    const server = await device.gatt.connect();
+                    log("Ligado ao GATT server. A procurar o serviço FF00...");
+
+                    const service = await server.getPrimaryService(SERVICE_UUID);
+                    log("Serviço encontrado. A procurar a característica de escrita FF02...");
+
+                    writeChar = await service.getCharacteristic(WRITE_CHAR_UUID);
+                    log(`Característica de escrita encontrada. Propriedades: ${JSON.stringify(writeChar.properties)}`);
+
+                    // Tenta ligar notificações (FF01/FF03) — só para diagnóstico,
+                    // não é crítico se falhar.
+                    for (const uuid of NOTIFY_CHAR_UUIDS) {
+                        try {
+                            const notifyChar = await service.getCharacteristic(uuid);
+                            await notifyChar.startNotifications();
+                            notifyChar.addEventListener("characteristicvaluechanged", (e) => {
+                                const value = new Uint8Array(e.target.value.buffer);
+                                log(`Notificação de ${uuid.slice(4, 8)}: [${Array.from(value).join(",")}]`);
+                            });
+                            log(`Notificações ligadas em ${uuid.slice(4, 8)}.`);
+                        } catch (err) {
+                            log(`(sem notificações em ${uuid.slice(4, 8)}: ${err.message})`);
+                        }
+                    }
+
+                    setStatus(true, `Ligado a ${device.name || "impressora"}`);
+                    log("Pronto para imprimir.");
+                } catch (error) {
+                    log(`Erro ao ligar: ${error.message}`);
+                    setStatus(false, "Desligado");
+                }
+            });
+
+            btnDisconnect.addEventListener("click", () => {
+                if (device && device.gatt.connected) {
+                    device.gatt.disconnect();
+                }
+                setStatus(false, "Desligado");
+                writeChar = null;
+            });
+
+            btnPrint.addEventListener("click", async () => {
+                if (!writeChar) {
+                    log("Sem característica de escrita — liga primeiro.");
+                    return;
+                }
+                btnPrint.disabled = true;
+                try {
+                    const payload = buildTestPrintPayload();
+                    log(`A enviar ${payload.length} bytes...`);
+                    await writeInChunks(payload, writeChar);
+                    log("Enviado. Verifica se saiu papel.");
+                } catch (error) {
+                    log(`Erro ao imprimir: ${error.message}`);
+                } finally {
+                    btnPrint.disabled = false;
+                }
+            });
+
+            // Comandos ESC/POS simples: inicializa, escreve texto ASCII,
+            // avança papel para conseguires rasgar o talão.
+            function buildTestPrintPayload() {
+                const bytes = [];
+                bytes.push(0x1b, 0x40); // ESC @ — inicializa a impressora
+                const linhas = [
+                    "Ola FlyTools",
+                    "Teste Bluetooth OK",
+                    "MTP-3"
+                ];
+                linhas.forEach(linha => {
+                    for (let i = 0; i < linha.length; i++) {
+                        bytes.push(linha.charCodeAt(i));
+                    }
+                    bytes.push(0x0a); // LF
+                });
+                bytes.push(0x0a, 0x0a, 0x0a, 0x0a); // avança papel para rasgar
+                return new Uint8Array(bytes);
+            }
+
+            // Escreve em blocos pequenos (20 bytes) — MTU antigo do BLE não
+            // garante mais do que isso numa escrita só. Usa writeValue()
+            // (o método clássico, suportado por todas as implementações de
+            // Web Bluetooth, incluindo o Bluefy) em vez dos métodos novos
+            // writeValueWithResponse/WithoutResponse, que podem não existir
+            // consoante a versão do browser.
+            async function writeInChunks(bytes, characteristic) {
+                const CHUNK = 20;
+                for (let offset = 0; offset < bytes.length; offset += CHUNK) {
+                    const chunk = bytes.slice(offset, offset + CHUNK);
+                    await characteristic.writeValue(chunk);
+                    // pequena pausa entre blocos para não encher o buffer da impressora
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                }
+            }
+        </script>
+    </body>
+</html>
