@@ -200,7 +200,7 @@
                     setStatus(true, `Ligado a ${device.name || "impressora"}`);
                     log("Pronto para imprimir.");
                 } catch (error) {
-                    log(`Erro ao ligar: ${error.message}`);
+                    log(`Erro ao ligar: ${error?.name || ""} ${error?.message || String(error)}`);
                     setStatus(false, "Desligado");
                 }
             });
@@ -225,7 +225,7 @@
                     await writeInChunks(payload, writeChar);
                     log("Enviado. Verifica se saiu papel.");
                 } catch (error) {
-                    log(`Erro ao imprimir: ${error.message}`);
+                    log(`Erro ao imprimir: ${error?.name || ""} ${error?.message || String(error)}`);
                 } finally {
                     btnPrint.disabled = false;
                 }
@@ -252,18 +252,30 @@
             }
 
             // Escreve em blocos pequenos (20 bytes) — MTU antigo do BLE não
-            // garante mais do que isso numa escrita só. Usa writeValue()
-            // (o método clássico, suportado por todas as implementações de
-            // Web Bluetooth, incluindo o Bluefy) em vez dos métodos novos
-            // writeValueWithResponse/WithoutResponse, que podem não existir
-            // consoante a versão do browser.
+            // garante mais do que isso numa escrita só.
+            //
+            // A característica FF02 reporta as duas propriedades
+            // (write E writeWithoutResponse). O writeValue() "clássico"
+            // tende a escolher "com resposta" quando ambas existem — e é
+            // exactamente aí que a impressora desligava (o log mostrava
+            // "A enviar 44 bytes..." seguido logo de "Ligação perdida.").
+            // Impressoras baratas deste tipo (protocolo "cat printer",
+            // como esta MTP-3) normalmente só aguentam bem escrita SEM
+            // resposta — por isso forçamos explicitamente esse modo.
             async function writeInChunks(bytes, characteristic) {
                 const CHUNK = 20;
+                const semResposta = typeof characteristic.writeValueWithoutResponse === "function"
+                    && characteristic.properties.writeWithoutResponse;
+
                 for (let offset = 0; offset < bytes.length; offset += CHUNK) {
                     const chunk = bytes.slice(offset, offset + CHUNK);
-                    await characteristic.writeValue(chunk);
+                    if (semResposta) {
+                        await characteristic.writeValueWithoutResponse(chunk);
+                    } else {
+                        await characteristic.writeValue(chunk);
+                    }
                     // pequena pausa entre blocos para não encher o buffer da impressora
-                    await new Promise(resolve => setTimeout(resolve, 20));
+                    await new Promise(resolve => setTimeout(resolve, 30));
                 }
             }
         </script>
