@@ -311,7 +311,13 @@
             // Impressoras baratas deste tipo (protocolo "cat printer",
             // como esta MTP-3) normalmente só aguentam bem escrita SEM
             // resposta — por isso forçamos explicitamente esse modo.
-            async function writeInChunks(bytes, characteristic) {
+            //
+            // atraso (ms) é configurável: o 3a (9 bytes, 1 bloco) sobreviveu,
+            // mas o 3b (571 bytes, ~29 blocos + a cabeça de impressão a
+            // aquecer a sério) desligou a impressora — pode ser demasiados
+            // blocos seguidos depressa a encher o buffer, por isso agora
+            // dá para abrandar.
+            async function writeInChunks(bytes, characteristic, atrasoMs = 30) {
                 const CHUNK = 20;
                 const semResposta = typeof characteristic.writeValueWithoutResponse === "function"
                     && characteristic.properties.writeWithoutResponse;
@@ -324,8 +330,12 @@
                         await characteristic.writeValue(chunk);
                     }
                     // pequena pausa entre blocos para não encher o buffer da impressora
-                    await new Promise(resolve => setTimeout(resolve, 30));
+                    await new Promise(resolve => setTimeout(resolve, atrasoMs));
                 }
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
 
             // =====================================================
@@ -404,27 +414,54 @@
                 await enviarTeste("Cat-printer: GET_DEV_STATE", new Uint8Array(CAT_CMD_GET_DEV_STATE), btnCatState);
             });
 
+            // O 3b anterior (8 linhas, energia 0xffff, tudo numa rajada só)
+            // desligou a impressora — pode ter sido demasiados blocos
+            // seguidos depressa, ou a cabeça a pedir corrente a mais de
+            // uma vez (0xffff é o valor "máximo" usado no projeto original,
+            // pode ser excessivo para esta impressora). Este teste manda
+            // por FASES, com pausas a seguir a cada uma (para a impressora
+            // "respirar" entre a configuração, o aquecer da cabeça e o
+            // imprimir a sério), só 1 linha, e com energia bem mais baixa.
             btnCatPrint.addEventListener("click", async () => {
-                const numRows = 8; // ~8 linhas = uma barrinha visível, não a folha toda
-                const rows = [];
-                for (let i = 0; i < numRows; i++) rows.push(catCmdPrintBlackRow());
+                if (!writeChar) {
+                    log("Sem característica de escrita — liga primeiro.");
+                    return;
+                }
+                btnCatPrint.disabled = true;
+                const ENERGY = 0x3000; // bem abaixo do 0xffff "máximo" usado no teste anterior
 
-                const sequence = concatBytes([
-                    CAT_CMD_GET_DEV_STATE,
-                    CAT_CMD_SET_QUALITY_200_DPI,
-                    catCmdSetEnergy(0xffff),
-                    catCmdApplyEnergy(),
-                    CAT_CMD_LATTICE_START,
-                    ...rows,
-                    catCmdFeedPaper(25),
-                    CAT_CMD_SET_PAPER,
-                    CAT_CMD_SET_PAPER,
-                    CAT_CMD_SET_PAPER,
-                    CAT_CMD_LATTICE_END,
-                    CAT_CMD_GET_DEV_STATE
-                ]);
+                try {
+                    log("Fase 1/5: estado + qualidade...");
+                    await writeInChunks(new Uint8Array(concatBytes([CAT_CMD_GET_DEV_STATE, CAT_CMD_SET_QUALITY_200_DPI])), writeChar, 40);
+                    await sleep(150);
 
-                await enviarTeste(`Cat-printer: barra preta (${sequence.length} bytes)`, sequence, btnCatPrint);
+                    log(`Fase 2/5: energia (0x${ENERGY.toString(16)}) + aplicar...`);
+                    await writeInChunks(new Uint8Array(concatBytes([catCmdSetEnergy(ENERGY), catCmdApplyEnergy()])), writeChar, 40);
+                    await sleep(200);
+
+                    log("Fase 3/5: início do lattice...");
+                    await writeInChunks(new Uint8Array(CAT_CMD_LATTICE_START), writeChar, 40);
+                    await sleep(150);
+
+                    log("Fase 4/5: 1 linha preta...");
+                    await writeInChunks(new Uint8Array(catCmdPrintBlackRow()), writeChar, 40);
+                    await sleep(200);
+
+                    log("Fase 5/5: avançar papel + fim do lattice...");
+                    await writeInChunks(new Uint8Array(concatBytes([
+                        catCmdFeedPaper(25),
+                        CAT_CMD_SET_PAPER,
+                        CAT_CMD_SET_PAPER,
+                        CAT_CMD_SET_PAPER,
+                        CAT_CMD_LATTICE_END
+                    ])), writeChar, 40);
+
+                    log("Enviado tudo. Impressora continua ligada? Saiu alguma marca no papel?");
+                } catch (error) {
+                    log(`Erro (parou a meio): ${error?.name || ""} ${error?.message || String(error)}`);
+                } finally {
+                    btnCatPrint.disabled = !writeChar ? true : false;
+                }
             });
         </script>
     </body>
