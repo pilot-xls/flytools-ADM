@@ -109,16 +109,17 @@
         <button id="btnConnect" type="button">1. Ligar à impressora</button>
         <button id="btnTest1" type="button" disabled>2a. Testar: 1 byte só (LF)</button>
         <button id="btnTest2" type="button" disabled>2b. Testar: só ESC@ (init)</button>
-        <button id="btnPrint" type="button" disabled>2c. Imprimir "Ola" (pacote completo)</button>
+        <button id="btnTest3" type="button" disabled>2c. ESC@ + "Ola" curto (1 pacote)</button>
+        <button id="btnPrint" type="button" disabled>2d. Imprimir "Ola" (pacote completo, 3 blocos)</button>
         <button id="btnDisconnect" type="button" class="secondary" disabled>Desligar</button>
 
         <p class="hint">
-            A impressora desligou-se sozinha (luz apagou) ao receber o pacote
-            completo — isso cheira a firmware a rebentar com os bytes, não a
-            um problema de ligação. Os botões 2a/2b mandam só um bocadinho
-            de dados de cada vez, para descobrirmos exactamente que byte(s)
-            causam o desligar. Testa por ordem: liga, 2a, volta a ligar se
-            desligou, 2b, volta a ligar se desligou, só depois 2c.
+            O 2b (só ESC@) já não desliga a impressora — sobreviveu a um
+            pacote pequeno. O 2c manda ESC@ + um texto curto tudo num único
+            bloco de escrita (sem dividir em vários), para percebermos se o
+            problema é o CONTEÚDO de texto ou é mandar vários blocos
+            seguidos (o 2d divide em 3 blocos). Testa por ordem: 2c, depois
+            (se sobreviver) 2d.
         </p>
 
         <div class="log-title">Registo</div>
@@ -141,6 +142,7 @@
             const btnConnect = document.getElementById("btnConnect");
             const btnTest1 = document.getElementById("btnTest1");
             const btnTest2 = document.getElementById("btnTest2");
+            const btnTest3 = document.getElementById("btnTest3");
             const btnPrint = document.getElementById("btnPrint");
             const btnDisconnect = document.getElementById("btnDisconnect");
             const logEl = document.getElementById("log");
@@ -162,6 +164,7 @@
                 btnPrint.disabled = !connected;
                 btnTest1.disabled = !connected;
                 btnTest2.disabled = !connected;
+                btnTest3.disabled = !connected;
                 btnDisconnect.disabled = !connected;
                 btnConnect.disabled = connected;
             }
@@ -242,6 +245,14 @@
 
             btnTest2.addEventListener("click", async () => {
                 await enviarTeste("só ESC@ (2 bytes)", new Uint8Array([0x1b, 0x40]), btnTest2);
+            });
+
+            btnTest3.addEventListener("click", async () => {
+                // ESC@ + "Ola\n" — cabe tudo num único bloco de 20 bytes,
+                // por isso writeInChunks só faz UMA escrita (não divide).
+                const bytes = [0x1b, 0x40];
+                "Ola\n".split("").forEach(ch => bytes.push(ch.charCodeAt(0)));
+                await enviarTeste('ESC@ + "Ola" (1 pacote, 6 bytes)', new Uint8Array(bytes), btnTest3);
             });
 
             async function enviarTeste(descricao, payload, botao) {
