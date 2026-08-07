@@ -94,6 +94,32 @@ async function waitForPrintPageReady() {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }
 
+// Carrega o html2canvas só quando é preciso (em vez de confiar em "defer"
+// + timing, que foi o que causou o erro "ainda não carregou"). Se o
+// caminho local js/vendor/html2canvas.min.js falhar (ex.: não existe no
+// repo), tenta automaticamente a versão do CDN.
+let html2canvasLoadPromise = null;
+function carregarHtml2Canvas() {
+    if (typeof html2canvas === "function") return Promise.resolve();
+    if (html2canvasLoadPromise) return html2canvasLoadPromise;
+
+    html2canvasLoadPromise = new Promise((resolve, reject) => {
+        const local = document.createElement("script");
+        local.src = "js/vendor/html2canvas.min.js";
+        local.onload = () => resolve();
+        local.onerror = () => {
+            const cdn = document.createElement("script");
+            cdn.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            cdn.onload = () => resolve();
+            cdn.onerror = () => reject(new Error("Não foi possível carregar o html2canvas (local nem CDN)."));
+            document.head.appendChild(cdn);
+        };
+        document.head.appendChild(local);
+    });
+
+    return html2canvasLoadPromise;
+}
+
 // Gera a imagem final a partir da área capturada e mostra a pré-visualização.
 // A "scale" aumenta a resolução do raster (mais nítido), independentemente
 // do tamanho em mm do papel — o pixel-a-pixel exacto para a impressora
@@ -104,18 +130,16 @@ async function gerarImagemTermica() {
     const capture = document.getElementById("mbPrintCapture");
     if (!capture) return;
 
-    if (typeof html2canvas !== "function") {
-        alert("html2canvas ainda não carregou — tenta novamente daqui a pouco.");
-        return;
-    }
-
     const textoOriginal = btn ? btn.textContent : "";
     if (btn) {
         btn.disabled = true;
-        btn.textContent = "A gerar...";
+        btn.textContent = "A carregar...";
     }
 
     try {
+        await carregarHtml2Canvas();
+
+        if (btn) btn.textContent = "A gerar...";
         atualizarDataHoraImpressao();
 
         const canvas = await html2canvas(capture, {
