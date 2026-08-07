@@ -1,21 +1,18 @@
 /* =====================================================
    mb-print-thermal.css
-   Layout dedicado para impressoras térmicas de 80mm
-   (ex.: GOOJPRT MTP-3). Isto NÃO usa window.print()/@page —
-   a página é capturada como imagem (html2canvas) e essa
-   imagem é enviada para a impressora via Bluetooth.
-   Por isso todo o desenho está em mm reais, sem regras
-   @media print.
+   Esta página deixou de tentar imitar o papel de 80mm no ecrã —
+   isso agora é feito à parte, desenhando directamente num
+   <canvas> (ver js/mb-print-thermal.js), porque o html2canvas
+   (tirar "print" à página) mostrou-se pouco fiável a reproduzir
+   CSS mais elaborado (grid, float, e até tabela nativa perderam
+   texto). Esta página serve só para reveres/ajustares os valores
+   numa vista normal e confortável — a tabela usa a classe
+   "mb-table" tal como no mb.html, sem nada de especial.
    ===================================================== */
-
-:root {
-    --thermal-paper-width: 80mm;
-    --thermal-side-padding: 4mm;
-}
 
 body.mb-thermal-body {
     margin: 0;
-    background: #d8d8d8;
+    background: #f2f2f2;
     color: #111;
 }
 
@@ -44,169 +41,44 @@ body.mb-thermal-body {
     text-align: center;
 }
 
-/* A "folha" com a largura real do papel, para a pré-visualização
-   já corresponder ao tamanho físico do talão. */
 .mb-thermal-page {
-    width: var(--thermal-paper-width);
+    max-width: 520px;
     margin: 14px auto 24px;
-    background: #fff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    padding: 0 12px;
 }
 
 .mb-thermal-capture {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 3mm var(--thermal-side-padding) 4mm;
     background: #fff;
-    text-align: center;
+    border-radius: 10px;
+    padding: 12px;
 }
 
-/* --- Cabeçalho --- */
 #mb-table #heading {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 0 2mm 0;
+    text-align: center;
+    margin: 0 0 8px 0;
 }
 
 .mb-thermal-logo {
-    width: 20mm;
+    width: 90px;
     height: auto;
-    margin: 0 0 1mm 0;
-}
-
-#mb-table #heading h2 {
-    margin: 0;
-    font-size: 11pt;
-    line-height: 1.15;
-}
-
-#mb-table #heading p {
-    margin: 0;
-    font-size: 8pt;
-    line-height: 1.2;
+    margin: 0 0 6px 0;
 }
 
 #mbPrintTimestamp {
-    margin-top: 1mm;
-    font-size: 6.5pt;
+    margin-top: 4px;
+    font-size: 11px;
     color: #444;
-    text-align: center;
 }
 
-/* --- Tabela ---
-   Tanto display:grid como float (as duas tentativas anteriores)
-   deram texto em falta/mal colocado na imagem gerada. Em ambos os
-   casos eu tinha mudado o "display" de <tr>/<td> para outra coisa
-   que não fosse table-row/table-cell — e é exactamente isso que o
-   html2canvas trata mal: tem uma lógica própria para <table> que
-   fica confusa quando o display é substituído. Por isso agora a
-   tabela fica 100% nativa (table/table-row/table-cell, sem
-   display:block/grid/float em lado nenhum) — 4 colunas estreitas,
-   como um talão normal, só que com fontes pequenas. É o mesmo tipo
-   de tabela que já existe no mb-print.html, só que redimensionada. */
-.mb-thermal-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    margin: 0 0 3mm 0;
-}
-
-.mb-thermal-table thead th {
-    font-size: 6.4pt;
-    font-weight: 700;
-    text-align: right;
-    padding: 0.8mm 0.6mm;
-    border-bottom: 0.4mm solid #333;
-}
-
-.mb-thermal-table thead th:first-child {
-    text-align: left;
-}
-
-.mb-thermal-table tr.gray-row {
-    background: #f0f0f0;
-}
-
-.mb-thermal-table td {
-    border-bottom: 0.3mm solid #dcdcdc;
-    padding: 0.9mm 0.6mm;
-    vertical-align: middle;
-    font-size: 6.6pt;
-    line-height: 1.15;
-}
-
-.mb-thermal-table td:nth-child(1) {
-    width: 32%;
-    text-align: left;
-    font-weight: 600;
-}
-
-.mb-thermal-table td:nth-child(1) label {
-    font-size: 6.6pt;
-    font-weight: 600;
-}
-
-.mb-thermal-table td:nth-child(2) {
-    width: 20%;
-    text-align: right;
-    font-weight: 700;
-    font-size: 7.6pt;
-}
-
-.mb-thermal-table td:nth-child(3) {
-    width: 24%;
-    text-align: right;
-    color: #555;
-}
-
-.mb-thermal-table td:nth-child(4) {
-    width: 24%;
-    text-align: right;
-    color: #555;
-    font-size: 6pt;
-}
-
-/* inputs, antes de serem convertidos em valores estáticos */
-.mb-thermal-table input {
-    width: 100%;
-    height: 4.6mm;
-    text-align: right;
-    font-size: 7.6pt;
-    font-weight: 700;
-    border: 1px dotted #bcbcbc;
-    border-radius: 1mm;
-    padding: 0 0.5mm;
-    box-sizing: border-box;
-}
-
-/* valor estático (gerado por mb-print-thermal.js) que substitui o input */
-.mb-thermal-table .mb-static-value {
-    text-align: right;
-    font-size: 7.6pt;
-    font-weight: 700;
-}
-
-/* avisos de limite excedido (classes usadas pelo mb.js: checkLimit()) */
-.mb-thermal-table tr.limit-exceed {
-    background: #ffe3e3;
-    border-bottom: 0.3mm solid #e08a8a;
-}
-
-.mb-thermal-table .info-warning {
-    color: #c0102a;
-    font-weight: 700;
-}
-
-/* --- Envelope CG ---
-   Largura máxima disponível (toda a área útil) para o gráfico
-   ficar o maior possível — é o elemento mais importante de ler
-   rapidamente na cabine. */
+/* --- Envelope CG (vista de conferência, opcional) --- */
 .mb-thermal-envelope {
     position: relative;
     display: block;
     width: 100%;
-    margin: 0;
+    margin: 10px 0 0;
 }
 
 .mb-thermal-envelope #loadsheet-base {
@@ -222,7 +94,7 @@ body.mb-thermal-body {
     height: 100%;
 }
 
-/* --- Pré-visualização da imagem gerada --- */
+/* --- Pré-visualização da imagem gerada (esta sim, à escala real) --- */
 .mb-thermal-preview-wrap {
     max-width: 480px;
     margin: 0 auto 32px;
@@ -243,10 +115,75 @@ body.mb-thermal-body {
 
 .mb-thermal-preview-img {
     display: block;
-    width: var(--thermal-paper-width);
+    width: 320px;
     max-width: 100%;
     margin: 0 auto 10px;
     border: 1px solid #ccc;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    image-rendering: pixelated;
+}
+
+/* --- Bluetooth --- */
+.mb-thermal-bt-wrap {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #ddd;
+    text-align: left;
+}
+
+.mb-thermal-warning {
+    background: #fff3cd;
+    border: 1px solid #ffe08a;
+    color: #6b5300;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.mb-thermal-bt-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: #f4f4f4;
+    border-radius: 8px;
+}
+
+.mb-thermal-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #c0102a;
+    flex-shrink: 0;
+}
+
+.mb-thermal-dot.ok {
+    background: #1a9c4a;
+}
+
+.mb-thermal-bt-wrap button.btn {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.mb-thermal-log-title {
+    font-size: 11px;
+    color: #555;
+    margin: 8px 0 4px;
+}
+
+.mb-thermal-log {
+    background: #111;
+    color: #7fffa0;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    min-height: 80px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
