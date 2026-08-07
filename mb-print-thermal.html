@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>D228 - Mass & Balance (Térmica 80mm)</title>
+        <link href="css/theme.css" rel="stylesheet">
+        <link href="css/mb.css" rel="stylesheet">
+        <link href="css/mb-print-thermal.css" rel="stylesheet">
+    </head>
+    <body class="mb-thermal-body">
+        <div class="mb-thermal-toolbar">
+            <button id="btnGerarImagem" type="button" class="btn">Gerar imagem</button>
+            <button id="btnClosePrint" type="button" class="btn btn-secondary">Fechar</button>
+        </div>
+
+        <p class="mb-thermal-hint">
+            Pré-visualização à largura real do papel (80mm). Carrega em
+            "Gerar imagem" para converter isto numa imagem — é essa imagem
+            que a app de impressão vai mandar para a impressora.
+        </p>
+
+        <main class="mb-thermal-page">
+            <section id="mbPrintCapture" class="mb-thermal-capture">
+                <div id="mb-table">
+                    <div id="heading">
+                        <img src="img/sevenair.png" loading="eager" alt="Sevenair logo" class="mb-thermal-logo">
+                        <h2>Weight &amp; Balance</h2>
+                        <p id="ac-selected"></p>
+                        <p id="nomeLeg"></p>
+                        <div id="mbPrintTimestamp" aria-live="polite"></div>
+                    </div>
+                    <table class="mb-table mb-thermal-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" id="thead-item">Item</th>
+                                <th scope="col">Weight (kg)</th>
+                                <th scope="col">Moment (kg&middot;m)</th>
+                                <th scope="col" id="thead-info">INFO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Basic weight</td>
+                                <td id="basicWeight">0</td>
+                                <td id="basicMoment">0</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="pilots">Pilots</label>
+                                </td>
+                                <td>
+                                    <input id="pilots" class="popup-fuel" type="number" inputmode="numeric" step="any" value="150">
+                                </td>
+                                <td id="momentPilots">0</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="manualPayload">Payload</label>
+                                </td>
+                                <td>
+                                    <input id="manualPayload" class="popup-fuel" type="number" inputmode="numeric" step="any" value="0">
+                                    <input type="hidden" id="momentPayloadInput">
+                                </td>
+                                <td id="momentPayload">0</td>
+                                <td id="Info-maxfuel"></td>
+                            </tr>
+                            <tr class="gray-row">
+                                <td>ZFW</td>
+                                <td id="zfw">0</td>
+                                <td id="momentZfw">0</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="fuel">Fuel loading</label>
+                                </td>
+                                <td>
+                                    <input id="fuel" class="popup-fuel" type="number" inputmode="numeric" step="any" value="0">
+                                </td>
+                                <td id="momentFuel">0</td>
+                                <td id="Info-maxpayload"></td>
+                            </tr>
+                            <tr id="rampRow" class="gray-row">
+                                <td>Ramp Weight</td>
+                                <td id="rampWeight" class="limit-check">0</td>
+                                <td id="momentRamp">0</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="fuelTaxi">Fuel taxi</label>
+                                </td>
+                                <td>
+                                    <input id="fuelTaxi" class="popup-fuel" type="number" inputmode="numeric" step="any" value="30">
+                                </td>
+                                <td id="momentTaxi">0</td>
+                                <td></td>
+                            </tr>
+                            <tr id="takeoffRow" class="gray-row">
+                                <td>Take-off Weight</td>
+                                <td id="takeoffWeight" class="limit-check">0</td>
+                                <td id="momentTakeoff">0</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="fuelDest">Fuel to destination</label>
+                                </td>
+                                <td>
+                                    <input id="fuelDest" class="popup-fuel" type="number" inputmode="numeric" step="any" value="0">
+                                </td>
+                                <td id="momentDest">0</td>
+                                <td></td>
+                            </tr>
+                            <tr id="landingRow" class="gray-row">
+                                <td>Landing Weight</td>
+                                <td id="landingWeight" class="limit-check">0</td>
+                                <td id="momentLanding">0</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadsheet-img" class="mb-thermal-envelope">
+                    <img id="loadsheet-base" loading="eager" fetchpriority="high" alt="Envelope CG">
+                    <svg id="cg-svg" viewBox="0 0 400 300"></svg>
+                </div>
+            </section>
+        </main>
+
+        <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
+            <h3>Pré-visualização da imagem gerada</h3>
+            <p id="mbThermalPreviewInfo" class="mb-thermal-preview-info"></p>
+            <img id="mbThermalPreviewImg" class="mb-thermal-preview-img" alt="Imagem gerada para impressão térmica">
+            <a id="mbThermalDownloadLink" class="btn" download="weight-balance-80mm.png">Guardar imagem (PNG)</a>
+        </div>
+
+        <script src="js/general.js"></script>
+        <script src="js/dataLoader.js"></script>
+        <script src="js/mb.js"></script>
+        <script src="js/vendor/html2canvas.min.js" defer onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';"></script>
+        <script src="js/mb-print-thermal.js"></script>
+    </body>
+</html>
