@@ -15,28 +15,30 @@
         </div>
 
         <p class="mb-thermal-hint">
-            Pré-visualização à largura real do papel (80mm). Carrega em
-            "Gerar imagem" para converter isto numa imagem — é essa imagem
-            que a app de impressão vai mandar para a impressora.
+            Confirma/ajusta os valores abaixo (é a vista normal, não é o
+            tamanho do talão). Depois carrega em "Gerar imagem" — essa
+            imagem é desenhada à parte, já nas proporções reais do papel
+            de 80mm, e é essa que a app de impressão vai mandar para a
+            impressora.
         </p>
 
         <main class="mb-thermal-page">
             <section id="mbPrintCapture" class="mb-thermal-capture">
                 <div id="mb-table">
                     <div id="heading">
-                        <img src="img/sevenair.png" loading="eager" alt="Sevenair logo" class="mb-thermal-logo">
+                        <img id="thermalLogo" src="img/sevenair.png" loading="eager" alt="Sevenair logo" class="mb-thermal-logo">
                         <h2>Weight &amp; Balance</h2>
                         <p id="ac-selected"></p>
                         <p id="nomeLeg"></p>
                         <div id="mbPrintTimestamp" aria-live="polite"></div>
                     </div>
-                    <table class="mb-table mb-thermal-table">
+                    <table class="mb-table">
                         <thead>
                             <tr>
                                 <th scope="col" id="thead-item">Item</th>
-                                <th scope="col">Kg</th>
-                                <th scope="col">Mom</th>
-                                <th scope="col" id="thead-info">Info</th>
+                                <th scope="col">Weight (kg)</th>
+                                <th scope="col">Moment (kg&middot;m)</th>
+                                <th scope="col" id="thead-info">INFO</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,15 +134,36 @@
         </main>
 
         <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
-            <h3>Pré-visualização da imagem gerada</h3>
+            <h3>Pré-visualização da imagem gerada (tamanho real do talão)</h3>
             <p id="mbThermalPreviewInfo" class="mb-thermal-preview-info"></p>
             <img id="mbThermalPreviewImg" class="mb-thermal-preview-img" alt="Imagem gerada para impressão térmica">
             <a id="mbThermalDownloadLink" class="btn" download="weight-balance-80mm.png">Guardar imagem (PNG)</a>
+
+            <div id="btWrap" class="mb-thermal-bt-wrap">
+                <div id="apiWarning" class="mb-thermal-warning" hidden>
+                    Este browser não suporta Bluetooth. Abre esta página
+                    dentro da app "Bluefy — Web BLE Browser" (App Store),
+                    não no Safari.
+                </div>
+
+                <div class="mb-thermal-bt-status">
+                    <div id="statusDot" class="mb-thermal-dot"></div>
+                    <span id="statusText">Impressora desligada</span>
+                </div>
+
+                <button id="btnConnect" type="button" class="btn">Ligar à impressora</button>
+                <button id="btnPrintBt" type="button" class="btn" disabled>Imprimir na impressora (Bluetooth)</button>
+                <button id="btnDisconnect" type="button" class="btn btn-secondary" disabled>Desligar</button>
+
+                <div class="mb-thermal-log-title">Registo</div>
+                <div id="log" class="mb-thermal-log"></div>
+            </div>
         </div>
 
         <script src="js/general.js"></script>
         <script src="js/dataLoader.js"></script>
         <script src="js/mb.js"></script>
+        <script src="js/cat-printer-protocol.js"></script>
         <script src="js/mb-print-thermal.js"></script>
     </body>
 </html>
