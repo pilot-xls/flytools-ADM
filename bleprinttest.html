@@ -107,8 +107,19 @@
         </div>
 
         <button id="btnConnect" type="button">1. Ligar à impressora</button>
-        <button id="btnPrint" type="button" disabled>2. Imprimir "Ola"</button>
+        <button id="btnTest1" type="button" disabled>2a. Testar: 1 byte só (LF)</button>
+        <button id="btnTest2" type="button" disabled>2b. Testar: só ESC@ (init)</button>
+        <button id="btnPrint" type="button" disabled>2c. Imprimir "Ola" (pacote completo)</button>
         <button id="btnDisconnect" type="button" class="secondary" disabled>Desligar</button>
+
+        <p class="hint">
+            A impressora desligou-se sozinha (luz apagou) ao receber o pacote
+            completo — isso cheira a firmware a rebentar com os bytes, não a
+            um problema de ligação. Os botões 2a/2b mandam só um bocadinho
+            de dados de cada vez, para descobrirmos exactamente que byte(s)
+            causam o desligar. Testa por ordem: liga, 2a, volta a ligar se
+            desligou, 2b, volta a ligar se desligou, só depois 2c.
+        </p>
 
         <div class="log-title">Registo</div>
         <div id="log"></div>
@@ -128,6 +139,8 @@
             const statusDot = document.getElementById("statusDot");
             const statusText = document.getElementById("statusText");
             const btnConnect = document.getElementById("btnConnect");
+            const btnTest1 = document.getElementById("btnTest1");
+            const btnTest2 = document.getElementById("btnTest2");
             const btnPrint = document.getElementById("btnPrint");
             const btnDisconnect = document.getElementById("btnDisconnect");
             const logEl = document.getElementById("log");
@@ -147,6 +160,8 @@
                 statusDot.classList.toggle("ok", connected);
                 statusText.textContent = text;
                 btnPrint.disabled = !connected;
+                btnTest1.disabled = !connected;
+                btnTest2.disabled = !connected;
                 btnDisconnect.disabled = !connected;
                 btnConnect.disabled = connected;
             }
@@ -214,22 +229,37 @@
             });
 
             btnPrint.addEventListener("click", async () => {
+                await enviarTeste("pacote completo (44 bytes)", buildTestPrintPayload(), btnPrint);
+            });
+
+            // Testes de diagnóstico — mandam só um bocadinho de dados de
+            // cada vez, para isolar exactamente o que faz a impressora
+            // desligar-se sozinha (pode ser o comando ESC@ em si, ou o
+            // volume de dados, ou outra coisa qualquer).
+            btnTest1.addEventListener("click", async () => {
+                await enviarTeste("1 byte (LF)", new Uint8Array([0x0a]), btnTest1);
+            });
+
+            btnTest2.addEventListener("click", async () => {
+                await enviarTeste("só ESC@ (2 bytes)", new Uint8Array([0x1b, 0x40]), btnTest2);
+            });
+
+            async function enviarTeste(descricao, payload, botao) {
                 if (!writeChar) {
                     log("Sem característica de escrita — liga primeiro.");
                     return;
                 }
-                btnPrint.disabled = true;
+                botao.disabled = true;
                 try {
-                    const payload = buildTestPrintPayload();
-                    log(`A enviar ${payload.length} bytes...`);
+                    log(`A enviar ${descricao} (${payload.length} bytes)...`);
                     await writeInChunks(payload, writeChar);
-                    log("Enviado. Verifica se saiu papel.");
+                    log(`Enviado (${descricao}). Impressora continua ligada? Verifica.`);
                 } catch (error) {
-                    log(`Erro ao imprimir: ${error?.name || ""} ${error?.message || String(error)}`);
+                    log(`Erro a enviar ${descricao}: ${error?.name || ""} ${error?.message || String(error)}`);
                 } finally {
-                    btnPrint.disabled = false;
+                    botao.disabled = !writeChar ? true : false;
                 }
-            });
+            }
 
             // Comandos ESC/POS simples: inicializa, escreve texto ASCII,
             // avança papel para conseguires rasgar o talão.
