@@ -95,121 +95,95 @@ body.mb-thermal-body {
 }
 
 /* --- Tabela ---
-   Mantém as tags <table>/<tr>/<td> (o mb.js usa closest("tr") e
-   td:last-child para MAC%/limites/avisos). O layout de 2 "andares"
-   por linha (item+peso em cima, momento+info pequenos por baixo)
-   é feito com FLOAT, não com display:grid — o html2canvas tem
-   suporte muito fraco/instável para CSS Grid (linhas ficavam com
-   alturas erradas e texto fora da caixa visível na imagem gerada);
-   float é layout antigo e o html2canvas trata-o de forma fiável. */
+   Tanto display:grid como float (as duas tentativas anteriores)
+   deram texto em falta/mal colocado na imagem gerada. Em ambos os
+   casos eu tinha mudado o "display" de <tr>/<td> para outra coisa
+   que não fosse table-row/table-cell — e é exactamente isso que o
+   html2canvas trata mal: tem uma lógica própria para <table> que
+   fica confusa quando o display é substituído. Por isso agora a
+   tabela fica 100% nativa (table/table-row/table-cell, sem
+   display:block/grid/float em lado nenhum) — 4 colunas estreitas,
+   como um talão normal, só que com fontes pequenas. É o mesmo tipo
+   de tabela que já existe no mb-print.html, só que redimensionada. */
 .mb-thermal-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     margin: 0 0 3mm 0;
 }
 
-.mb-thermal-table thead {
-    display: none;
+.mb-thermal-table thead th {
+    font-size: 6.4pt;
+    font-weight: 700;
+    text-align: right;
+    padding: 0.8mm 0.6mm;
+    border-bottom: 0.4mm solid #333;
 }
 
-.mb-thermal-table tbody tr {
-    display: block;
-    overflow: hidden;
-    padding: 1mm 0;
-    border-bottom: 0.3mm solid #dcdcdc;
+.mb-thermal-table thead th:first-child {
+    text-align: left;
 }
 
 .mb-thermal-table tr.gray-row {
     background: #f0f0f0;
-    border-bottom: 0.3mm solid #bfbfbf;
 }
 
 .mb-thermal-table td {
-    display: block;
-    padding: 0;
+    border-bottom: 0.3mm solid #dcdcdc;
+    padding: 0.9mm 0.6mm;
+    vertical-align: middle;
+    font-size: 6.6pt;
+    line-height: 1.15;
 }
 
-/* célula 1 = nome do item (linha 1, esquerda).
-   Largura explícita em % (em vez de deixar o float "encolher ao
-   conteúdo") para o html2canvas não ter ambiguidade nenhuma a
-   calcular a caixa. */
 .mb-thermal-table td:nth-child(1) {
-    float: left;
-    width: 58%;
-    box-sizing: border-box;
+    width: 32%;
     text-align: left;
-    font-size: 8.5pt;
     font-weight: 600;
 }
 
 .mb-thermal-table td:nth-child(1) label {
-    font-size: 8.5pt;
+    font-size: 6.6pt;
     font-weight: 600;
 }
 
-/* célula 2 = peso (linha 1, direita, em destaque) */
 .mb-thermal-table td:nth-child(2) {
-    float: right;
-    width: 40%;
-    box-sizing: border-box;
+    width: 20%;
     text-align: right;
-    font-size: 9.5pt;
     font-weight: 700;
+    font-size: 7.6pt;
 }
 
-/* célula 3 = momento (linha 2, esquerda, pequeno).
-   clear:both empurra-a para debaixo da linha 1 (item + peso). */
 .mb-thermal-table td:nth-child(3) {
-    clear: both;
-    float: left;
-    width: 58%;
-    box-sizing: border-box;
-    text-align: left;
-    font-size: 6.6pt;
-    color: #555;
-    font-weight: 400;
-    padding-top: 0.3mm;
-}
-
-.mb-thermal-table td:nth-child(3)::before {
-    content: "Mom ";
-}
-
-/* célula 4 = INFO (MAC%, limites, avisos) (linha 2, direita, pequeno) */
-.mb-thermal-table td:nth-child(4) {
-    float: right;
-    width: 40%;
-    box-sizing: border-box;
+    width: 24%;
     text-align: right;
-    font-size: 6.6pt;
     color: #555;
-    padding-top: 0.3mm;
 }
 
-.mb-thermal-table td:nth-child(4):empty {
-    display: none;
+.mb-thermal-table td:nth-child(4) {
+    width: 24%;
+    text-align: right;
+    color: #555;
+    font-size: 6pt;
 }
 
 /* inputs, antes de serem convertidos em valores estáticos */
 .mb-thermal-table input {
     width: 100%;
-    max-width: 26mm;
-    height: 5mm;
+    height: 4.6mm;
     text-align: right;
-    font-size: 9.5pt;
+    font-size: 7.6pt;
     font-weight: 700;
     border: 1px dotted #bcbcbc;
-    border-radius: 1.5mm;
-    padding: 0 1mm;
+    border-radius: 1mm;
+    padding: 0 0.5mm;
     box-sizing: border-box;
 }
 
 /* valor estático (gerado por mb-print-thermal.js) que substitui o input */
 .mb-thermal-table .mb-static-value {
-    display: block;
-    width: 100%;
     text-align: right;
-    font-size: 9.5pt;
+    font-size: 7.6pt;
     font-weight: 700;
 }
 
