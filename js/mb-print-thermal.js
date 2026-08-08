@@ -349,23 +349,70 @@ let btDevice = null;
 let btWriteChar = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    const apiWarning = document.getElementById("apiWarning");
+    const noBluefyCard = document.getElementById("noBluefyCard");
+    const printReadyCard = document.getElementById("printReadyCard");
     const btnConnect = document.getElementById("btnConnect");
     const btnPrintBt = document.getElementById("btnPrintBt");
     const btnDisconnect = document.getElementById("btnDisconnect");
+    const btnPrintDirect = document.getElementById("btnPrintDirect");
 
-    if (!btnConnect) return; // esta página pode não ter a secção de Bluetooth
+    // Deteta se este browser suporta Bluetooth (só existe dentro do Bluefy,
+    // nunca no Safari) — isso decide qual dos dois cartões mostrar:
+    // aviso + link para instalar o Bluefy, ou o botão de imprimir a sério.
+    const temBluetooth = !!navigator.bluetooth;
+    if (noBluefyCard) noBluefyCard.hidden = temBluetooth;
+    if (printReadyCard) printReadyCard.hidden = !temBluetooth;
 
-    if (!navigator.bluetooth) {
-        if (apiWarning) apiWarning.hidden = false;
+    if (!btnConnect) return; // esta página pode não ter a secção avançada de Bluetooth
+
+    if (!temBluetooth) {
         btnConnect.disabled = true;
-        btLog("navigator.bluetooth não existe neste browser.");
+        btLog("navigator.bluetooth não existe neste browser — abre esta página no Bluefy.");
     }
 
     btnConnect.addEventListener("click", btConnect);
     btnDisconnect.addEventListener("click", btDisconnect);
     btnPrintBt.addEventListener("click", imprimirReciboNaImpressora);
+    if (btnPrintDirect) btnPrintDirect.addEventListener("click", imprimirDireto);
 });
+
+// Fluxo de um único botão: gera a imagem, liga à impressora se ainda não
+// estiver ligada, e imprime — tudo de seguida, sem passos manuais. É o
+// que aparece quando já estamos dentro do Bluefy.
+async function imprimirDireto() {
+    const btnPrintDirect = document.getElementById("btnPrintDirect");
+    if (!btnPrintDirect) return;
+
+    const textoOriginal = btnPrintDirect.textContent;
+    btnPrintDirect.disabled = true;
+
+    try {
+        btnPrintDirect.textContent = "A preparar a imagem...";
+        if (typeof exec_calculo === "function") {
+            await exec_calculo();
+        }
+        const timestamp = atualizarDataHoraImpressao();
+        lastReceiptCanvas = desenharRecibo(timestamp);
+
+        if (!btWriteChar) {
+            btnPrintDirect.textContent = "A ligar à impressora...";
+            const ligou = await btConnect();
+            if (!ligou) {
+                alert("Não foi possível ligar à impressora. Confirma que está ligada (com bateria) e não está já ligada a outro telemóvel — vê também o \"Registo\" em Opções avançadas.");
+                return;
+            }
+        }
+
+        btnPrintDirect.textContent = "A imprimir...";
+        await imprimirReciboNaImpressora();
+    } catch (error) {
+        console.error("Erro no fluxo de impressão direta:", error);
+        alert("Não foi possível imprimir: " + (error?.message || error));
+    } finally {
+        btnPrintDirect.disabled = false;
+        btnPrintDirect.textContent = textoOriginal;
+    }
+}
 
 function btLog(msg) {
     const logEl = document.getElementById("log");
@@ -410,9 +457,11 @@ async function btConnect() {
 
         btSetStatus(true, `Ligado a ${btDevice.name || "impressora"}`);
         btLog("Pronto para imprimir.");
+        return true;
     } catch (error) {
         btLog(`Erro ao ligar: ${error?.name || ""} ${error?.message || String(error)}`);
         btSetStatus(false, "Impressora desligada");
+        return false;
     }
 }
 
