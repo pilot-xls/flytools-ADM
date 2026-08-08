@@ -41,6 +41,81 @@ body.mb-thermal-body {
     text-align: center;
 }
 
+/* --- Cartões mostrados logo abaixo da barra de topo: aviso "falta o
+   Bluefy" (com link para a App Store) ou o botão único de imprimir,
+   consoante o browser tenha ou não suporte a Bluetooth. --- */
+.mb-thermal-notice {
+    max-width: 480px;
+    margin: 12px auto;
+    padding: 14px 16px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.mb-thermal-notice p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.mb-thermal-notice .mb-thermal-hint {
+    margin: 8px 0 0;
+    padding: 0;
+}
+
+.mb-thermal-notice .btn {
+    display: inline-block;
+    width: auto;
+    min-width: 220px;
+}
+
+.mb-thermal-notice-warning {
+    background: #fff3cd;
+    border: 1px solid #ffe08a;
+    color: #6b5300;
+}
+
+.mb-thermal-notice-warning .btn {
+    background: #6b5300;
+}
+
+.mb-thermal-notice-ready {
+    background: #eaf7ee;
+    border: 1px solid #b7e3c3;
+}
+
+.mb-thermal-notice-ready .btn-primary {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 14px 16px;
+    font-size: 17px;
+    font-weight: 600;
+    background: #1a9c4a;
+}
+
+/* --- Secção "Opções avançadas" (gerar/guardar imagem, ligar manualmente) --- */
+.mb-thermal-advanced {
+    max-width: 480px;
+    margin: 8px auto 32px;
+    padding: 0 12px;
+}
+
+.mb-thermal-advanced summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #444;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.mb-thermal-advanced > button.btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+}
+
 .mb-thermal-page {
     max-width: 520px;
     margin: 14px auto 24px;
