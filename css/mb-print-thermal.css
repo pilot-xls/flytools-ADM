@@ -262,3 +262,36 @@ body.mb-thermal-body {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* --- Impressão: mostra só a imagem do talão já gerada, nada mais --- */
+@media print {
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    body.mb-thermal-body {
+        background: #fff !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .mb-thermal-preview-wrap {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .mb-thermal-preview-img {
+        display: block !important;
+        width: 80mm !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}

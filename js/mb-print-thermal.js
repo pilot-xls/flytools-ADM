@@ -24,6 +24,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (typeof exec_calculo === "function") {
             await exec_calculo();
         }
+        // Gera a imagem logo à entrada, sem esperar por um clique manual em "Gerar imagem".
+        await gerarImagemTermica({ silent: true });
     } catch (error) {
         console.error("Erro ao preparar os dados:", error);
     }
@@ -32,6 +34,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (btnGerarImagem) {
         btnGerarImagem.addEventListener("click", () => {
             gerarImagemTermica();
+        });
+    }
+
+    const btnPrintThermalImage = document.getElementById("btnPrintThermalImage");
+    if (btnPrintThermalImage) {
+        btnPrintThermalImage.addEventListener("click", async () => {
+            await gerarImagemTermica({ silent: true });
+            window.print();
         });
     }
 
@@ -133,7 +143,7 @@ function buildRows() {
 
 // --- Geração da imagem ---
 
-async function gerarImagemTermica() {
+async function gerarImagemTermica({ silent = false } = {}) {
     const btn = document.getElementById("btnGerarImagem");
     const textoOriginal = btn ? btn.textContent : "";
     if (btn) {
@@ -160,7 +170,9 @@ async function gerarImagemTermica() {
         downloadLink.href = dataUrl;
         info.textContent = `${finalCanvas.width} x ${finalCanvas.height} px`;
         wrap.hidden = false;
-        wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!silent) {
+            wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     } catch (error) {
         console.error("Erro ao gerar a imagem térmica:", error);
         alert("Não foi possível gerar a imagem: " + (error?.message || error));
