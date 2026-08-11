@@ -53,12 +53,12 @@ body.mb-thermal-body {
     display: none !important;
 }
 
-/* --- Impressão / Guardar PDF: mostra só a imagem do talão --- */
-@page {
-    size: 80mm auto;
-    margin: 0;
-}
-
+/* --- Impressão / Guardar PDF: mostra só a imagem do talão ---
+   O tamanho da página (80mm de largura x altura exacta da imagem) é
+   definido dinamicamente por js/mb-print-thermal.js (ver
+   atualizarTamanhoPaginaImpressao) sempre que a imagem é gerada — usar
+   aqui um "@page { size: 80mm auto }" fixo não é fiável, porque muitos
+   motores de impressão ignoram "auto" na altura e caem para A4/Letter. */
 @media print {
     html,
     body {
