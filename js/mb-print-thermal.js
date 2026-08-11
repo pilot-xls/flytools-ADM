@@ -17,6 +17,25 @@
 const OUTPUT_WIDTH = 640; // px "de trabalho" para 80mm — ajustável depois de sabermos os pontos reais da impressora
 const MARGIN = 22;
 const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
+const PAGE_WIDTH_MM = 80; // largura do rolo térmico
+
+// O CSS "@page { size: 80mm auto; }" não é fiável — muitos motores de
+// impressão ignoram a palavra "auto" para a altura e caem de volta para
+// A4/Letter, o que faz o conteúdo (pensado para 80mm) ser esticado/
+// reposicionado para preencher essa folha maior. Em vez disso calculamos
+// aqui a altura exacta (em mm) a partir da proporção real da imagem
+// gerada, e definimos um @page com as duas dimensões fixas — isso sim
+// é respeitado de forma consistente ao imprimir/guardar como PDF.
+function atualizarTamanhoPaginaImpressao(canvas) {
+    const alturaMm = PAGE_WIDTH_MM * (canvas.height / canvas.width);
+    let styleEl = document.getElementById("mbThermalPageSize");
+    if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "mbThermalPageSize";
+        document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = `@page { size: ${PAGE_WIDTH_MM}mm ${alturaMm.toFixed(2)}mm; margin: 0; }`;
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -144,6 +163,7 @@ async function gerarImagemTermica({ silent = false } = {}) {
         const timestamp = atualizarDataHoraImpressao();
 
         const finalCanvas = desenharRecibo(timestamp);
+        atualizarTamanhoPaginaImpressao(finalCanvas);
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
         const img = document.getElementById("mbThermalPreviewImg");
