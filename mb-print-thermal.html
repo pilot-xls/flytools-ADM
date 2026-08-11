@@ -14,34 +14,17 @@
             <button id="btnClosePrint" type="button" class="btn btn-secondary">Fechar</button>
         </div>
 
-        <!-- Mostrado quando esta página é aberta no Safari (ou noutro browser
-             sem Bluetooth) — não há forma de imprimir sem o Bluefy, por isso
-             nem mostramos os botões de impressão, só o caminho para o instalar. -->
-        <div id="noBluefyCard" class="mb-thermal-notice mb-thermal-notice-warning no-print" hidden>
-            <p><strong>Falta a app Bluefy.</strong> O Safari não suporta Bluetooth em páginas web — para imprimir precisas de abrir esta página dentro da app gratuita "Bluefy — Web BLE Browser".</p>
-            <a href="https://apps.apple.com/app/id1492822055" class="btn" target="_blank" rel="noopener">Instalar o Bluefy (App Store)</a>
-            <p class="mb-thermal-hint">Depois de instalado: abre o Bluefy, cola aqui o link desta página e volta a carregar no botão de imprimir.</p>
-        </div>
-
-        <!-- Mostrado quando já estamos num browser com Bluetooth (Bluefy) —
-             um único botão trata de tudo: gera a imagem, liga à impressora
-             (se ainda não estiver ligada) e imprime. -->
-        <div id="printReadyCard" class="mb-thermal-notice mb-thermal-notice-ready no-print" hidden>
-            <button id="btnPrintDirect" type="button" class="btn btn-primary">🖨️ Imprimir Weight &amp; Balance</button>
-            <p class="mb-thermal-hint">Confirma os valores abaixo antes de imprimires.</p>
-        </div>
-
         <!-- Pré-visualização da imagem gerada automaticamente ao abrir a
-             página — já pronta para o botão "Imprimir / Guardar PDF" acima,
-             sem ser preciso carregar em "Gerar imagem" primeiro. -->
+             página — já pronta para o botão "Imprimir / Guardar PDF" acima. -->
         <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
-            <h3 class="no-print">Pré-visualização da imagem gerada (tamanho real do talão)</h3>
-            <p id="mbThermalPreviewInfo" class="mb-thermal-preview-info no-print"></p>
             <img id="mbThermalPreviewImg" class="mb-thermal-preview-img" alt="Imagem gerada para impressão térmica">
             <a id="mbThermalDownloadLink" class="btn no-print" download="weight-balance-80mm.png">Guardar imagem (PNG)</a>
         </div>
 
-        <main class="mb-thermal-page no-print">
+        <!-- Fonte dos dados usados para desenhar a imagem acima (js/mb-print-thermal.js
+             lê estes elementos). Fica sempre invisível ao utilizador — não é
+             ecrã de conferência, só a "matéria-prima" da imagem. -->
+        <main class="mb-thermal-source" aria-hidden="true">
             <section id="mbPrintCapture" class="mb-thermal-capture">
                 <div id="mb-table">
                     <div id="heading">
@@ -152,30 +135,9 @@
             </section>
         </main>
 
-        <details class="mb-thermal-advanced no-print">
-            <summary>Opções avançadas (gerar/guardar imagem, ligar manualmente)</summary>
-
-            <button id="btnGerarImagem" type="button" class="btn">Gerar imagem novamente</button>
-
-            <div id="btWrap" class="mb-thermal-bt-wrap">
-                <div class="mb-thermal-bt-status">
-                    <div id="statusDot" class="mb-thermal-dot"></div>
-                    <span id="statusText">Impressora desligada</span>
-                </div>
-
-                <button id="btnConnect" type="button" class="btn">Ligar à impressora</button>
-                <button id="btnPrintBt" type="button" class="btn" disabled>Imprimir na impressora (Bluetooth)</button>
-                <button id="btnDisconnect" type="button" class="btn btn-secondary" disabled>Desligar</button>
-
-                <div class="mb-thermal-log-title">Registo</div>
-                <div id="log" class="mb-thermal-log"></div>
-            </div>
-        </details>
-
         <script src="js/general.js"></script>
         <script src="js/dataLoader.js"></script>
         <script src="js/mb.js"></script>
-        <script src="js/cat-printer-protocol.js"></script>
         <script src="js/mb-print-thermal.js"></script>
     </body>
 </html>
