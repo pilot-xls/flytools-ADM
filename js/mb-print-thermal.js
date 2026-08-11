@@ -7,16 +7,16 @@
 // problema conhecido do html2canvas ao tentar reproduzir CSS à
 // mão. Desenhar directamente é o mesmo método que geradores de
 // recibo "a sério" costumam usar: zero dependência de como a
-// página está estilizada, controlo total sobre o resultado, e
-// já fica no formato exacto (imagem) que a app nativa vai enviar
-// para a impressora por Bluetooth.
+// página está estilizada, controlo total sobre o resultado.
+//
+// A imagem é gerada automaticamente ao abrir a página; o botão
+// "Imprimir / Guardar PDF" volta a gerá-la (para apanhar qualquer
+// alteração nos dados) e depois chama window.print().
 // =====================================================
 
 const OUTPUT_WIDTH = 640; // px "de trabalho" para 80mm — ajustável depois de sabermos os pontos reais da impressora
 const MARGIN = 22;
 const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
-
-let lastReceiptCanvas = null; // guarda o último recibo gerado, para o botão de imprimir por Bluetooth reutilizar
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -24,17 +24,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (typeof exec_calculo === "function") {
             await exec_calculo();
         }
-        // Gera a imagem logo à entrada, sem esperar por um clique manual em "Gerar imagem".
+        // Gera a imagem logo à entrada, sem esperar por um clique manual.
         await gerarImagemTermica({ silent: true });
     } catch (error) {
         console.error("Erro ao preparar os dados:", error);
-    }
-
-    const btnGerarImagem = document.getElementById("btnGerarImagem");
-    if (btnGerarImagem) {
-        btnGerarImagem.addEventListener("click", () => {
-            gerarImagemTermica();
-        });
     }
 
     const btnPrintThermalImage = document.getElementById("btnPrintThermalImage");
@@ -144,13 +137,6 @@ function buildRows() {
 // --- Geração da imagem ---
 
 async function gerarImagemTermica({ silent = false } = {}) {
-    const btn = document.getElementById("btnGerarImagem");
-    const textoOriginal = btn ? btn.textContent : "";
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = "A gerar...";
-    }
-
     try {
         if (typeof exec_calculo === "function") {
             await exec_calculo();
@@ -158,28 +144,24 @@ async function gerarImagemTermica({ silent = false } = {}) {
         const timestamp = atualizarDataHoraImpressao();
 
         const finalCanvas = desenharRecibo(timestamp);
-        lastReceiptCanvas = finalCanvas;
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
         const img = document.getElementById("mbThermalPreviewImg");
-        const info = document.getElementById("mbThermalPreviewInfo");
         const downloadLink = document.getElementById("mbThermalDownloadLink");
 
         const dataUrl = finalCanvas.toDataURL("image/png");
-        img.src = dataUrl;
-        downloadLink.href = dataUrl;
-        info.textContent = `${finalCanvas.width} x ${finalCanvas.height} px`;
-        wrap.hidden = false;
-        if (!silent) {
-            wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (img) img.src = dataUrl;
+        if (downloadLink) downloadLink.href = dataUrl;
+        if (wrap) {
+            wrap.hidden = false;
+            if (!silent) {
+                wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
         }
     } catch (error) {
         console.error("Erro ao gerar a imagem térmica:", error);
-        alert("Não foi possível gerar a imagem: " + (error?.message || error));
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = textoOriginal;
+        if (!silent) {
+            alert("Não foi possível gerar a imagem: " + (error?.message || error));
         }
     }
 }
@@ -342,234 +324,4 @@ function desenharRecibo(timestamp) {
         0, 0, OUTPUT_WIDTH, finalCanvas.height
     );
     return finalCanvas;
-}
-
-// =====================================================
-// Bluetooth — liga à impressora e envia o recibo já gerado, usando o
-// protocolo "cat printer" (js/cat-printer-protocol.js), confirmado a
-// funcionar em hardware real. IMPORTANTE: a impressora tem de estar
-// com a bateria colocada (ligada só por cabo USB, desligava-se a meio
-// por falta de corrente ao aquecer a cabeça + mover o motor).
-// Isto só funciona dentro do Bluefy (Safari não suporta Bluetooth).
-// =====================================================
-
-const CAT_SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb";
-const CAT_WRITE_CHAR_UUID = "0000ff02-0000-1000-8000-00805f9b34fb";
-const CAT_NAME_PREFIX = "MTP-3";
-
-let btDevice = null;
-let btWriteChar = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-    const noBluefyCard = document.getElementById("noBluefyCard");
-    const printReadyCard = document.getElementById("printReadyCard");
-    const btnConnect = document.getElementById("btnConnect");
-    const btnPrintBt = document.getElementById("btnPrintBt");
-    const btnDisconnect = document.getElementById("btnDisconnect");
-    const btnPrintDirect = document.getElementById("btnPrintDirect");
-
-    // Deteta se este browser suporta Bluetooth (só existe dentro do Bluefy,
-    // nunca no Safari) — isso decide qual dos dois cartões mostrar:
-    // aviso + link para instalar o Bluefy, ou o botão de imprimir a sério.
-    const temBluetooth = !!navigator.bluetooth;
-    if (noBluefyCard) noBluefyCard.hidden = temBluetooth;
-    if (printReadyCard) printReadyCard.hidden = !temBluetooth;
-
-    if (!btnConnect) return; // esta página pode não ter a secção avançada de Bluetooth
-
-    if (!temBluetooth) {
-        btnConnect.disabled = true;
-        btLog("navigator.bluetooth não existe neste browser — abre esta página no Bluefy.");
-    }
-
-    btnConnect.addEventListener("click", btConnect);
-    btnDisconnect.addEventListener("click", btDisconnect);
-    btnPrintBt.addEventListener("click", imprimirReciboNaImpressora);
-    if (btnPrintDirect) btnPrintDirect.addEventListener("click", imprimirDireto);
-});
-
-// Fluxo de um único botão: gera a imagem, liga à impressora se ainda não
-// estiver ligada, e imprime — tudo de seguida, sem passos manuais. É o
-// que aparece quando já estamos dentro do Bluefy.
-async function imprimirDireto() {
-    const btnPrintDirect = document.getElementById("btnPrintDirect");
-    if (!btnPrintDirect) return;
-
-    const textoOriginal = btnPrintDirect.textContent;
-    btnPrintDirect.disabled = true;
-
-    try {
-        btnPrintDirect.textContent = "A preparar a imagem...";
-        if (typeof exec_calculo === "function") {
-            await exec_calculo();
-        }
-        const timestamp = atualizarDataHoraImpressao();
-        lastReceiptCanvas = desenharRecibo(timestamp);
-
-        if (!btWriteChar) {
-            btnPrintDirect.textContent = "A ligar à impressora...";
-            const ligou = await btConnect();
-            if (!ligou) {
-                alert("Não foi possível ligar à impressora. Confirma que está ligada (com bateria) e não está já ligada a outro telemóvel — vê também o \"Registo\" em Opções avançadas.");
-                return;
-            }
-        }
-
-        btnPrintDirect.textContent = "A imprimir...";
-        await imprimirReciboNaImpressora();
-    } catch (error) {
-        console.error("Erro no fluxo de impressão direta:", error);
-        alert("Não foi possível imprimir: " + (error?.message || error));
-    } finally {
-        btnPrintDirect.disabled = false;
-        btnPrintDirect.textContent = textoOriginal;
-    }
-}
-
-function btLog(msg) {
-    const logEl = document.getElementById("log");
-    if (!logEl) return;
-    const time = new Date().toLocaleTimeString("pt-PT");
-    logEl.textContent += `[${time}] ${msg}\n`;
-    logEl.scrollTop = logEl.scrollHeight;
-    console.log(msg);
-}
-
-function btSetStatus(connected, text) {
-    const dot = document.getElementById("statusDot");
-    const statusText = document.getElementById("statusText");
-    const btnConnect = document.getElementById("btnConnect");
-    const btnPrintBt = document.getElementById("btnPrintBt");
-    const btnDisconnect = document.getElementById("btnDisconnect");
-    if (dot) dot.classList.toggle("ok", connected);
-    if (statusText) statusText.textContent = text;
-    if (btnPrintBt) btnPrintBt.disabled = !connected;
-    if (btnDisconnect) btnDisconnect.disabled = !connected;
-    if (btnConnect) btnConnect.disabled = connected;
-}
-
-async function btConnect() {
-    try {
-        btLog(`A procurar dispositivos com nome a começar por "${CAT_NAME_PREFIX}"...`);
-        btDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ namePrefix: CAT_NAME_PREFIX }],
-            optionalServices: [CAT_SERVICE_UUID]
-        });
-        btLog(`Selecionado: ${btDevice.name || "(sem nome)"} — a ligar...`);
-
-        btDevice.addEventListener("gattserverdisconnected", () => {
-            btLog("Ligação perdida (normal a impressora desligar-se sozinha depois de imprimir).");
-            btSetStatus(false, "Impressora desligada");
-            btWriteChar = null;
-        });
-
-        const server = await btDevice.gatt.connect();
-        const service = await server.getPrimaryService(CAT_SERVICE_UUID);
-        btWriteChar = await service.getCharacteristic(CAT_WRITE_CHAR_UUID);
-
-        btSetStatus(true, `Ligado a ${btDevice.name || "impressora"}`);
-        btLog("Pronto para imprimir.");
-        return true;
-    } catch (error) {
-        btLog(`Erro ao ligar: ${error?.name || ""} ${error?.message || String(error)}`);
-        btSetStatus(false, "Impressora desligada");
-        return false;
-    }
-}
-
-function btDisconnect() {
-    if (btDevice && btDevice.gatt.connected) {
-        btDevice.gatt.disconnect();
-    }
-    btSetStatus(false, "Impressora desligada");
-    btWriteChar = null;
-}
-
-// Converte o canvas do recibo num array de linhas de pixels (0/1), à
-// largura de pontos da impressora (CAT_PRINT_WIDTH), redimensionando
-// mantendo a proporção.
-function canvasParaLinhasDePixels(canvas, targetWidth) {
-    const scale = targetWidth / canvas.width;
-    const targetHeight = Math.max(1, Math.round(canvas.height * scale));
-
-    const resized = document.createElement("canvas");
-    resized.width = targetWidth;
-    resized.height = targetHeight;
-    const rctx = resized.getContext("2d");
-    rctx.fillStyle = "#ffffff";
-    rctx.fillRect(0, 0, targetWidth, targetHeight);
-    rctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-
-    const imgData = rctx.getImageData(0, 0, targetWidth, targetHeight).data;
-    const rows = [];
-    for (let y = 0; y < targetHeight; y++) {
-        const row = new Array(targetWidth);
-        for (let x = 0; x < targetWidth; x++) {
-            const idx = (y * targetWidth + x) * 4;
-            const r = imgData[idx];
-            const g = imgData[idx + 1];
-            const b = imgData[idx + 2];
-            const a = imgData[idx + 3];
-            const lum = r * 0.299 + g * 0.587 + b * 0.114;
-            row[x] = (a > 10 && lum < 165) ? 1 : 0; // limiar simples — ajustável se sair claro/escuro a mais
-        }
-        rows.push(row);
-    }
-    return rows;
-}
-
-async function imprimirReciboNaImpressora() {
-    const btnPrintBt = document.getElementById("btnPrintBt");
-    if (!btWriteChar) {
-        btLog("Sem ligação à impressora — carrega em \"Ligar à impressora\" primeiro.");
-        return;
-    }
-    if (!lastReceiptCanvas) {
-        btLog("Ainda não geraste a imagem — carrega em \"Gerar imagem\" primeiro.");
-        return;
-    }
-
-    btnPrintBt.disabled = true;
-    const textoOriginal = btnPrintBt.textContent;
-    const ENERGY = 0x3000;
-
-    try {
-        btLog("A converter a imagem para pontos preto/branco...");
-        const rows = canvasParaLinhasDePixels(lastReceiptCanvas, CAT_PRINT_WIDTH);
-        btLog(`${rows.length} linhas a enviar (${CAT_PRINT_WIDTH} pontos de largura).`);
-
-        btnPrintBt.textContent = "A imprimir... (config)";
-        await catWriteInChunks(new Uint8Array(catConcatBytes([CAT_CMD_GET_DEV_STATE, CAT_CMD_SET_QUALITY_200_DPI])), btWriteChar, 40);
-        await catSleep(150);
-
-        btnPrintBt.textContent = "A imprimir... (a aquecer)";
-        await catWriteInChunks(new Uint8Array(catConcatBytes([catCmdSetEnergy(ENERGY), catCmdApplyEnergy()])), btWriteChar, 40);
-        await catSleep(200);
-
-        await catWriteInChunks(new Uint8Array(CAT_CMD_LATTICE_START), btWriteChar, 40);
-        await catSleep(150);
-
-        for (let i = 0; i < rows.length; i++) {
-            btnPrintBt.textContent = `A imprimir... (linha ${i + 1}/${rows.length})`;
-            const packet = catBuildImageRowPacket(rows[i]);
-            await catWriteInChunks(new Uint8Array(packet), btWriteChar, 25);
-        }
-        await catSleep(150);
-
-        btnPrintBt.textContent = "A imprimir... (a terminar)";
-        await catWriteInChunks(new Uint8Array(catConcatBytes([
-            catCmdFeedPaper(25),
-            CAT_CMD_SET_PAPER,
-            CAT_CMD_SET_PAPER,
-            CAT_CMD_SET_PAPER,
-            CAT_CMD_LATTICE_END
-        ])), btWriteChar, 40);
-
-        btLog("Recibo enviado por completo. Verifica o papel.");
-    } catch (error) {
-        btLog(`Erro a imprimir: ${error?.name || ""} ${error?.message || String(error)}`);
-    } finally {
-        btnPrintBt.disabled = !btWriteChar;
-        btnPrintBt.textContent = textoOriginal;
-    }
 }

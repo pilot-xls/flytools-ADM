@@ -1,13 +1,10 @@
 /* =====================================================
    mb-print-thermal.css
-   Esta página deixou de tentar imitar o papel de 80mm no ecrã —
-   isso agora é feito à parte, desenhando directamente num
+   Esta página desenha a imagem do talão directamente num
    <canvas> (ver js/mb-print-thermal.js), porque o html2canvas
    (tirar "print" à página) mostrou-se pouco fiável a reproduzir
    CSS mais elaborado (grid, float, e até tabela nativa perderam
-   texto). Esta página serve só para reveres/ajustares os valores
-   numa vista normal e confortável — a tabela usa a classe
-   "mb-table" tal como no mb.html, sem nada de especial.
+   texto). A página em si só mostra o resultado: a imagem gerada.
    ===================================================== */
 
 body.mb-thermal-body {
@@ -32,160 +29,12 @@ body.mb-thermal-body {
     background: #5b6570;
 }
 
-.mb-thermal-hint {
-    max-width: 480px;
-    margin: 10px auto 0;
-    padding: 0 12px;
-    font-size: 12px;
-    color: #444;
-    text-align: center;
-}
-
-/* --- Cartões mostrados logo abaixo da barra de topo: aviso "falta o
-   Bluefy" (com link para a App Store) ou o botão único de imprimir,
-   consoante o browser tenha ou não suporte a Bluetooth. --- */
-.mb-thermal-notice {
-    max-width: 480px;
-    margin: 12px auto;
-    padding: 14px 16px;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.mb-thermal-notice p {
-    margin: 0 0 10px;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.mb-thermal-notice .mb-thermal-hint {
-    margin: 8px 0 0;
-    padding: 0;
-}
-
-.mb-thermal-notice .btn {
-    display: inline-block;
-    width: auto;
-    min-width: 220px;
-}
-
-.mb-thermal-notice-warning {
-    background: #fff3cd;
-    border: 1px solid #ffe08a;
-    color: #6b5300;
-}
-
-.mb-thermal-notice-warning .btn {
-    background: #6b5300;
-}
-
-.mb-thermal-notice-ready {
-    background: #eaf7ee;
-    border: 1px solid #b7e3c3;
-}
-
-.mb-thermal-notice-ready .btn-primary {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
-    padding: 14px 16px;
-    font-size: 17px;
-    font-weight: 600;
-    background: #1a9c4a;
-}
-
-/* --- Secção "Opções avançadas" (gerar/guardar imagem, ligar manualmente) --- */
-.mb-thermal-advanced {
-    max-width: 480px;
-    margin: 8px auto 32px;
-    padding: 0 12px;
-}
-
-.mb-thermal-advanced summary {
-    cursor: pointer;
-    font-size: 13px;
-    color: #444;
-    padding: 8px 0;
-    text-align: center;
-}
-
-.mb-thermal-advanced > button.btn {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-}
-
-.mb-thermal-page {
-    max-width: 520px;
-    margin: 14px auto 24px;
-    padding: 0 12px;
-}
-
-.mb-thermal-capture {
-    background: #fff;
-    border-radius: 10px;
-    padding: 12px;
-}
-
-#mb-table #heading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin: 0 0 8px 0;
-}
-
-.mb-thermal-logo {
-    width: 90px;
-    height: auto;
-    margin: 0 0 6px 0;
-}
-
-#mbPrintTimestamp {
-    margin-top: 4px;
-    font-size: 11px;
-    color: #444;
-}
-
-/* --- Envelope CG (vista de conferência, opcional) --- */
-.mb-thermal-envelope {
-    position: relative;
-    display: block;
-    width: 100%;
-    margin: 10px 0 0;
-}
-
-.mb-thermal-envelope #loadsheet-base {
-    display: block;
-    width: 100%;
-    height: auto;
-}
-
-.mb-thermal-envelope #cg-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-
-/* --- Pré-visualização da imagem gerada (esta sim, à escala real) --- */
+/* --- Pré-visualização da imagem gerada (à escala real, 80mm) --- */
 .mb-thermal-preview-wrap {
     max-width: 480px;
-    margin: 0 auto 32px;
+    margin: 24px auto 32px;
     padding: 0 12px;
     text-align: center;
-}
-
-.mb-thermal-preview-wrap h3 {
-    font-size: 13px;
-    margin: 0 0 4px;
-}
-
-.mb-thermal-preview-info {
-    font-size: 11px;
-    color: #555;
-    margin: 0 0 8px;
 }
 
 .mb-thermal-preview-img {
@@ -197,73 +46,19 @@ body.mb-thermal-body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* --- Bluetooth --- */
-.mb-thermal-bt-wrap {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid #ddd;
-    text-align: left;
+/* --- Fonte dos dados usados para desenhar a imagem: nunca é mostrada
+   ao utilizador, nem no ecrã nem na impressão — só existe no DOM para
+   js/mb-print-thermal.js ler os valores e o SVG do envelope CG. --- */
+.mb-thermal-source {
+    display: none !important;
 }
 
-.mb-thermal-warning {
-    background: #fff3cd;
-    border: 1px solid #ffe08a;
-    color: #6b5300;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    margin-bottom: 10px;
+/* --- Impressão / Guardar PDF: mostra só a imagem do talão --- */
+@page {
+    size: 80mm auto;
+    margin: 0;
 }
 
-.mb-thermal-bt-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    margin-bottom: 8px;
-    padding: 8px 10px;
-    background: #f4f4f4;
-    border-radius: 8px;
-}
-
-.mb-thermal-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #c0102a;
-    flex-shrink: 0;
-}
-
-.mb-thermal-dot.ok {
-    background: #1a9c4a;
-}
-
-.mb-thermal-bt-wrap button.btn {
-    width: 100%;
-    margin-bottom: 8px;
-}
-
-.mb-thermal-log-title {
-    font-size: 11px;
-    color: #555;
-    margin: 8px 0 4px;
-}
-
-.mb-thermal-log {
-    background: #111;
-    color: #7fffa0;
-    font-family: ui-monospace, Menlo, monospace;
-    font-size: 10px;
-    padding: 8px;
-    border-radius: 8px;
-    min-height: 80px;
-    max-height: 220px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* --- Impressão: mostra só a imagem do talão já gerada, nada mais --- */
 @media print {
     html,
     body {
