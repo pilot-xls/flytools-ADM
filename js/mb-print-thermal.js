@@ -9,9 +9,13 @@
 // recibo "a sério" costumam usar: zero dependência de como a
 // página está estilizada, controlo total sobre o resultado.
 //
-// A imagem é gerada automaticamente ao abrir a página; o botão
-// "Imprimir / Guardar PDF" volta a gerá-la (para apanhar qualquer
-// alteração nos dados) e depois chama window.print().
+// A imagem é gerada automaticamente ao abrir a página. Há dois botões:
+// "Imprimir / Guardar PDF" (window.print()) para impressoras normais
+// AirPrint ou para guardar um PDF; e "Partilhar imagem" (Web Share API
+// com ficheiros) para apps como o Thermer, que recebem a imagem em
+// bruto — isto evita o window.print(), porque nesse caminho o iOS
+// obriga a paginar para A3/A4/etc. antes de partilhar, distorcendo o
+// tamanho pensado para o rolo de 80mm.
 // =====================================================
 
 const OUTPUT_WIDTH = 640; // px "de trabalho" para 80mm — ajustável depois de sabermos os pontos reais da impressora
@@ -37,6 +41,37 @@ function atualizarTamanhoPaginaImpressao(canvas) {
     styleEl.textContent = `@page { size: ${PAGE_WIDTH_MM}mm ${alturaMm.toFixed(2)}mm; margin: 0; }`;
 }
 
+let lastReceiptCanvas = null; // guarda o último recibo gerado, para o botão "Partilhar imagem" reutilizar
+
+// Partilha a imagem gerada como ficheiro em bruto (Web Share API), em vez
+// de a imprimir — assim apps como o Thermer recebem-na tal como foi
+// desenhada (já à proporção certa para 80mm), sem passar pelo mecanismo
+// de impressão do iOS, que só paginação para tamanhos fixos (A3, A4, ...).
+async function partilharImagemTermica() {
+    if (!lastReceiptCanvas) return;
+
+    const blob = await new Promise(resolve => lastReceiptCanvas.toBlob(resolve, "image/png"));
+    if (!blob) {
+        alert("Não foi possível preparar a imagem para partilha.");
+        return;
+    }
+
+    const file = new File([blob], "weight-balance-80mm.png", { type: "image/png" });
+
+    if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+        alert("Este browser não suporta partilhar esta imagem diretamente — usa \"Guardar imagem (PNG)\" e partilha esse ficheiro manualmente.");
+        return;
+    }
+
+    try {
+        await navigator.share({ files: [file], title: "Weight & Balance" });
+    } catch (error) {
+        if (error?.name !== "AbortError") {
+            console.error("Erro ao partilhar a imagem:", error);
+        }
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await waitForPrintPageReady();
@@ -54,6 +89,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnPrintThermalImage.addEventListener("click", async () => {
             await gerarImagemTermica({ silent: true });
             window.print();
+        });
+    }
+
+    const btnShareThermalImage = document.getElementById("btnShareThermalImage");
+    if (btnShareThermalImage && navigator.share) {
+        btnShareThermalImage.hidden = false;
+        btnShareThermalImage.addEventListener("click", async () => {
+            await gerarImagemTermica({ silent: true });
+            await partilharImagemTermica();
         });
     }
 
@@ -163,6 +207,7 @@ async function gerarImagemTermica({ silent = false } = {}) {
         const timestamp = atualizarDataHoraImpressao();
 
         const finalCanvas = desenharRecibo(timestamp);
+        lastReceiptCanvas = finalCanvas;
         atualizarTamanhoPaginaImpressao(finalCanvas);
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
