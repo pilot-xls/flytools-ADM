@@ -254,6 +254,58 @@ async function gerarImagemTermica({ silent = false } = {}) {
     }
 }
 
+// As imagens do envelope CG (img/serieXXX.png) vêm gigantes (algumas com
+// mais de 15000px de largura) e têm de ser reduzidas para perto de
+// 1000-2000px — mais de 10x de uma só vez. Mesmo com boa qualidade de
+// filtro, os browsers não conseguem preservar bem traços finos (as
+// diagonais da grelha) numa redução tão brutal num único passo — saem
+// aos pontos em vez de linha contínua. Reduzir sempre a metade de cada
+// vez (o browser filtra isso muito bem) e repetir até chegar perto do
+// tamanho final preserva muito mais detalhe fino.
+// dw/dh são o tamanho de destino em unidades "lógicas" (o ctx pode já ter
+// um ctx.scale() activo, ex: o supersampling em desenharRecibo) — por
+// isso o alvo real em pixels físicos é dw*escalaCtx/dh*escalaCtx, e é
+// esse valor que interessa para decidir quantas vezes reduzir a metade.
+function desenharImagemReduzidaEmEtapas(ctx, img, dx, dy, dw, dh, escalaCtx = 1) {
+    const MAX_INTERMEDIATE = 4096; // limite seguro de tamanho de canvas no Safari/iOS
+    const alvoLargura = dw * escalaCtx;
+    const alvoAltura = dh * escalaCtx;
+    let origem = img;
+    let largura = img.naturalWidth;
+    let altura = img.naturalHeight;
+
+    if (largura > MAX_INTERMEDIATE || altura > MAX_INTERMEDIATE) {
+        const escala = MAX_INTERMEDIATE / Math.max(largura, altura);
+        largura = Math.round(largura * escala);
+        altura = Math.round(altura * escala);
+        const c = document.createElement("canvas");
+        c.width = largura;
+        c.height = altura;
+        const cctx = c.getContext("2d");
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = "high";
+        cctx.drawImage(img, 0, 0, largura, altura);
+        origem = c;
+    }
+
+    while (largura > alvoLargura * 2 && altura > alvoAltura * 2) {
+        const novaLargura = Math.round(largura / 2);
+        const novaAltura = Math.round(altura / 2);
+        const c = document.createElement("canvas");
+        c.width = novaLargura;
+        c.height = novaAltura;
+        const cctx = c.getContext("2d");
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = "high";
+        cctx.drawImage(origem, 0, 0, novaLargura, novaAltura);
+        origem = c;
+        largura = novaLargura;
+        altura = novaAltura;
+    }
+
+    ctx.drawImage(origem, dx, dy, dw, dh);
+}
+
 function desenharRecibo(timestamp) {
     // Canvas "de trabalho" bem alto — no fim recorta-se só o espaço usado.
     // Físicamente é SUPERSAMPLE vezes maior; o ctx.scale() abaixo faz com
@@ -389,7 +441,7 @@ function desenharRecibo(timestamp) {
     if (envelopeImg && envelopeImg.naturalWidth) {
         const imgW = OUTPUT_WIDTH;
         const imgH = imgW * (envelopeImg.naturalHeight / envelopeImg.naturalWidth);
-        ctx.drawImage(envelopeImg, 0, y, imgW, imgH);
+        desenharImagemReduzidaEmEtapas(ctx, envelopeImg, 0, y, imgW, imgH, SUPERSAMPLE);
 
         // Pontos ZFW/TOW/LDG lidos directamente do SVG já desenhado pelo
         // mb.js (desenharPontos()), para não duplicar essa lógica aqui.
