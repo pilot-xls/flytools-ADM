@@ -182,6 +182,23 @@ async function gerarReciboPDF({ silent = false } = {}) {
                 wrap.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         }
+        // A caixa de pré-visualização tinha uma altura fixa no CSS, que não
+        // batia certo com a forma real do talão (estreito e muito comprido)
+        // — o visualizador de PDF encolhia a página inteira para caber,
+        // sobrando bastante espaço em branco à volta. Ajusta-se aqui a
+        // altura da caixa à proporção real da página gerada, para que o
+        // PDF preencha a pré-visualização tal como vai ficar quando
+        // partilhado/aberto.
+        if (frame) {
+            const larguraPagMm = doc.internal.pageSize.getWidth();
+            const alturaPagMm = doc.internal.pageSize.getHeight();
+            const larguraCaixaPx = frame.clientWidth;
+            if (larguraCaixaPx > 0) {
+                const alturaProporcional = larguraCaixaPx * (alturaPagMm / larguraPagMm);
+                const alturaMaxima = window.innerHeight * 0.85;
+                frame.style.height = Math.min(alturaProporcional, alturaMaxima) + "px";
+            }
+        }
     } catch (error) {
         console.error("Erro ao gerar o PDF do talão:", error);
         if (!silent) {
