@@ -27,19 +27,15 @@
 // cinzentos nos bordos do texto, o que dá o aspecto "borrado".
 const OUTPUT_WIDTH = 576;
 const MARGIN = 22;
-const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
-// Fontes monoespaçadas têm dígitos com formas mais geométricas e
-// "aberturas" maiores do que as fontes normais do sistema (que têm
-// curvas suaves, pensadas para ecrã, não para impressão térmica a
-// baixa resolução) — números como 5/6/9 deixam de colapsar numa
-// mancha ao serem convertidos para preto/branco puro. Usada só nos
-// números (pesos, momentos, avisos); os títulos/etiquetas continuam
-// na fonte normal para haver contraste hierárquico.
-// Courier New primeiro: é a fonte clássica de máquina de escrever (já
-// vem instalada no iOS/macOS), com dígitos ainda mais distintos entre
-// si do que o SF Mono (mais moderno/geométrico) — só cai para este
-// último se o Courier não estiver disponível.
-const MONO_FONT_FAMILY = "'Courier New', Courier, ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
+// Fontes monoespaçadas têm formas mais geométricas e "aberturas" maiores
+// do que as fontes normais do sistema (que têm curvas suaves, pensadas
+// para ecrã, não para impressão térmica a baixa resolução) — números
+// como 5/6/9 deixam de colapsar numa mancha ao serem convertidos para
+// preto/branco puro. Usada em todo o talão, texto e números, para
+// consistência. Courier New primeiro: é a fonte clássica de máquina de
+// escrever (já vem instalada no iOS/macOS); só cai para as outras se o
+// Courier não estiver disponível.
+const FONT_FAMILY = "'Courier New', Courier, ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
 // Desenhar directamente a 576px faz o texto perder detalhe nas curvas
 // (poucos pixels para definir a barriga de um 6/9) ainda antes de
 // convertermos para preto/branco puro — a nossa própria imagem já saía
@@ -346,7 +342,7 @@ function desenharRecibo(timestamp) {
         // cima (faux bold), mas isso fecha as aberturas dos dígitos
         // (6/9/8/0 ficam uma mancha) — pior, não melhor. O peso "bold"
         // da própria fonte, já com supersampling, chega perfeitamente.
-        ctx.font = `bold 19px ${MONO_FONT_FAMILY}`;
+        ctx.font = `bold 19px ${FONT_FAMILY}`;
         ctx.textAlign = "right";
         ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
 
@@ -355,14 +351,14 @@ function desenharRecibo(timestamp) {
             // 600 em vez de normal: traços finos são os primeiros a
             // esbater/desaparecer em qualquer redimensionamento posterior
             // (feito pela app que recebe a imagem, ex: Thermer).
-            ctx.font = `600 12px ${MONO_FONT_FAMILY}`;
+            ctx.font = `600 12px ${FONT_FAMILY}`;
             ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
             ctx.fillText(`Mom ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `600 12px ${MONO_FONT_FAMILY}`;
+                ctx.font = `600 12px ${FONT_FAMILY}`;
                 ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
                 ctx.textAlign = "right";
                 ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
@@ -447,7 +443,14 @@ function desenharRecibo(timestamp) {
 // que os converte com o seu próprio dithering (pensado para fotos), e o
 // texto sai esfumado/"borrado". Ao forçar aqui cada pixel para preto ou
 // branco puro, não sobra cinzento nenhum para essa conversão estragar.
-const THERMAL_BW_THRESHOLD = 165; // mesmo limiar já validado no antigo caminho Bluetooth direto
+// 165 era o limiar validado no antigo caminho Bluetooth directo — mas
+// esse desenhava directamente à resolução final. Agora que reduzimos de
+// uma imagem a 2x (supersampling), os bordos ficam com uma transição de
+// cinzentos mais suave/gradual do que antes, e com 165 alguns traços
+// finos (que deviam ficar pretos) ficavam do lado de fora do corte e
+// desapareciam. Um limiar mais alto classifica mais desses cinzentos
+// intermédios como preto, em vez de os perder.
+const THERMAL_BW_THRESHOLD = 200;
 function aplicarPretoBrancoPuro(canvas) {
     const ctx = canvas.getContext("2d");
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
