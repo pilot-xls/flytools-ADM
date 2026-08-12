@@ -388,5 +388,27 @@ function desenharRecibo(timestamp) {
         0, 0, OUTPUT_WIDTH, finalCanvas.height,
         0, 0, OUTPUT_WIDTH, finalCanvas.height
     );
+    aplicarPretoBrancoPuro(finalCanvas);
     return finalCanvas;
+}
+
+// Impressoras térmicas só têm preto ou branco — sem isto, os bordos com
+// anti-aliasing (texto, linhas) chegam como cinzentos à app de impressão,
+// que os converte com o seu próprio dithering (pensado para fotos), e o
+// texto sai esfumado/"borrado". Ao forçar aqui cada pixel para preto ou
+// branco puro, não sobra cinzento nenhum para essa conversão estragar.
+const THERMAL_BW_THRESHOLD = 165; // mesmo limiar já validado no antigo caminho Bluetooth direto
+function aplicarPretoBrancoPuro(canvas) {
+    const ctx = canvas.getContext("2d");
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        const alpha = data[i + 3];
+        const branco = alpha < 10 || lum >= THERMAL_BW_THRESHOLD;
+        const valor = branco ? 255 : 0;
+        data[i] = data[i + 1] = data[i + 2] = valor;
+        data[i + 3] = 255; // remove transparência — fundo passa a branco opaco
+    }
+    ctx.putImageData(imgData, 0, 0);
 }
