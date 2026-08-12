@@ -18,7 +18,14 @@
 // tamanho pensado para o rolo de 80mm.
 // =====================================================
 
-const OUTPUT_WIDTH = 640; // px "de trabalho" para 80mm — ajustável depois de sabermos os pontos reais da impressora
+// 576px = 8 pontos/mm × 72mm — a largura imprimível real da grande maioria
+// das impressoras térmicas ESC/POS de "80mm" (o rolo tem 80mm, mas a área
+// imprimível costuma ficar-se pelos 72mm por causa das margens laterais).
+// Se a nossa imagem tiver uma largura diferente desta, a app recetora
+// (ex: Thermer) tem de a redimensionar antes de imprimir — e mesmo
+// partindo de preto/branco puro, esse redimensionamento reintroduz
+// cinzentos nos bordos do texto, o que dá o aspecto "borrado".
+const OUTPUT_WIDTH = 576;
 const MARGIN = 22;
 const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
 const PAGE_WIDTH_MM = 80; // largura do rolo térmico
@@ -259,7 +266,7 @@ function desenharRecibo(timestamp) {
     ctx.fillText("Weight & Balance", OUTPUT_WIDTH / 2, y + 22);
     y += 34;
 
-    ctx.font = `16px ${FONT_FAMILY}`;
+    ctx.font = `600 16px ${FONT_FAMILY}`;
     const acSelected = getEl("ac-selected");
     const nomeLeg = getEl("nomeLeg");
     if (acSelected) {
@@ -315,15 +322,18 @@ function desenharRecibo(timestamp) {
 
         ty += 18;
         if (row.moment) {
-            ctx.font = `12px ${FONT_FAMILY}`;
-            ctx.fillStyle = "#555555";
+            // 600 em vez de normal: traços finos são os primeiros a
+            // esbater/desaparecer em qualquer redimensionamento posterior
+            // (feito pela app que recebe a imagem, ex: Thermer).
+            ctx.font = `600 12px ${FONT_FAMILY}`;
+            ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
             ctx.fillText(`Mom ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `12px ${FONT_FAMILY}`;
-                ctx.fillStyle = line.warning ? "#c0102a" : "#555555";
+                ctx.font = `600 12px ${FONT_FAMILY}`;
+                ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
                 ctx.textAlign = "right";
                 ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
             });
