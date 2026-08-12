@@ -28,6 +28,14 @@
 const OUTPUT_WIDTH = 576;
 const MARGIN = 22;
 const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
+// Fontes monoespaçadas têm dígitos com formas mais geométricas e
+// "aberturas" maiores do que as fontes normais do sistema (que têm
+// curvas suaves, pensadas para ecrã, não para impressão térmica a
+// baixa resolução) — números como 5/6/9 deixam de colapsar numa
+// mancha ao serem convertidos para preto/branco puro. Usada só nos
+// números (pesos, momentos, avisos); os títulos/etiquetas continuam
+// na fonte normal para haver contraste hierárquico.
+const MONO_FONT_FAMILY = "ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
 const PAGE_WIDTH_MM = 80; // largura do rolo térmico
 
 // O CSS "@page { size: 80mm auto; }" não é fiável — muitos motores de
@@ -316,23 +324,32 @@ function desenharRecibo(timestamp) {
         ctx.textAlign = "left";
         ctx.fillText(row.label, MARGIN, ty);
 
-        ctx.font = `bold 19px ${FONT_FAMILY}`;
+        ctx.font = `bold 19px ${MONO_FONT_FAMILY}`;
         ctx.textAlign = "right";
-        ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
+        const weightText = String(row.weight ?? "0");
+        const weightX = OUTPUT_WIDTH - MARGIN;
+        ctx.fillText(weightText, weightX, ty);
+        // Reforça (faux bold) os números mais importantes do talão:
+        // um traço fino por cima do preenchimento fecha as "barrigas"
+        // de dígitos como 6/9/5, que senão colapsam ao converter para
+        // preto/branco puro.
+        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = "#111111";
+        ctx.strokeText(weightText, weightX, ty);
 
         ty += 18;
         if (row.moment) {
             // 600 em vez de normal: traços finos são os primeiros a
             // esbater/desaparecer em qualquer redimensionamento posterior
             // (feito pela app que recebe a imagem, ex: Thermer).
-            ctx.font = `600 12px ${FONT_FAMILY}`;
+            ctx.font = `600 12px ${MONO_FONT_FAMILY}`;
             ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
             ctx.fillText(`Mom ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `600 12px ${FONT_FAMILY}`;
+                ctx.font = `600 12px ${MONO_FONT_FAMILY}`;
                 ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
                 ctx.textAlign = "right";
                 ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
