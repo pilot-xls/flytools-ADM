@@ -338,18 +338,13 @@ function desenharRecibo(timestamp) {
         ctx.textAlign = "left";
         ctx.fillText(row.label, MARGIN, ty);
 
+        // Nota: já experimentámos reforçar isto com um traço extra por
+        // cima (faux bold), mas isso fecha as aberturas dos dígitos
+        // (6/9/8/0 ficam uma mancha) — pior, não melhor. O peso "bold"
+        // da própria fonte, já com supersampling, chega perfeitamente.
         ctx.font = `bold 19px ${MONO_FONT_FAMILY}`;
         ctx.textAlign = "right";
-        const weightText = String(row.weight ?? "0");
-        const weightX = OUTPUT_WIDTH - MARGIN;
-        ctx.fillText(weightText, weightX, ty);
-        // Reforça (faux bold) os números mais importantes do talão:
-        // um traço fino por cima do preenchimento fecha as "barrigas"
-        // de dígitos como 6/9/5, que senão colapsam ao converter para
-        // preto/branco puro.
-        ctx.lineWidth = 0.8;
-        ctx.strokeStyle = "#111111";
-        ctx.strokeText(weightText, weightX, ty);
+        ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
 
         ty += 18;
         if (row.moment) {
