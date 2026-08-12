@@ -414,7 +414,7 @@ function desenharRecibo(timestamp) {
             ctx.font = `600 12px ${FONT_FAMILY}`;
             ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
-            ctx.fillText(`Mom ${row.moment}`, MARGIN, ty);
+            ctx.fillText(`Moment ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
