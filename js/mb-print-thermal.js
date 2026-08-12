@@ -36,6 +36,14 @@ const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-ser
 // números (pesos, momentos, avisos); os títulos/etiquetas continuam
 // na fonte normal para haver contraste hierárquico.
 const MONO_FONT_FAMILY = "ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
+// Desenhar directamente a 576px faz o texto perder detalhe nas curvas
+// (poucos pixels para definir a barriga de um 6/9) ainda antes de
+// convertermos para preto/branco puro — a nossa própria imagem já saía
+// em "degraus". Desenhamos tudo a esta escala mais alta e reduzimos
+// (com boa interpolação) para o tamanho final só no fim, o que dá
+// contornos muito mais limpos sem mudar a largura final de 576px
+// (continua a bater certo com a impressora, ver OUTPUT_WIDTH acima).
+const SUPERSAMPLE = 2;
 const PAGE_WIDTH_MM = 80; // largura do rolo térmico
 
 // O CSS "@page { size: 80mm auto; }" não é fiável — muitos motores de
@@ -248,12 +256,18 @@ async function gerarImagemTermica({ silent = false } = {}) {
 
 function desenharRecibo(timestamp) {
     // Canvas "de trabalho" bem alto — no fim recorta-se só o espaço usado.
+    // Físicamente é SUPERSAMPLE vezes maior; o ctx.scale() abaixo faz com
+    // que todo o resto do código continue a desenhar com as mesmas
+    // coordenadas/tamanhos de sempre (em unidades "lógicas" de OUTPUT_WIDTH),
+    // só que rasterizadas com mais detalhe.
+    const WORK_HEIGHT = 4000;
     const work = document.createElement("canvas");
-    work.width = OUTPUT_WIDTH;
-    work.height = 4000;
+    work.width = OUTPUT_WIDTH * SUPERSAMPLE;
+    work.height = WORK_HEIGHT * SUPERSAMPLE;
     const ctx = work.getContext("2d");
+    ctx.scale(SUPERSAMPLE, SUPERSAMPLE);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, work.width, work.height);
+    ctx.fillRect(0, 0, OUTPUT_WIDTH, WORK_HEIGHT);
     ctx.textBaseline = "alphabetic";
 
     let y = MARGIN;
@@ -413,13 +427,16 @@ function desenharRecibo(timestamp) {
 
     y += MARGIN;
 
-    // Recorta o canvas "de trabalho" para o tamanho realmente usado.
+    // Recorta o canvas "de trabalho" para o tamanho realmente usado, e
+    // reduz da resolução de supersampling para o tamanho final (576px) —
+    // é esta redução, feita por nós com boa interpolação, que dá
+    // contornos limpos aos textos antes do preto/branco puro.
     const finalCanvas = document.createElement("canvas");
     finalCanvas.width = OUTPUT_WIDTH;
     finalCanvas.height = Math.ceil(y);
     finalCanvas.getContext("2d").drawImage(
         work,
-        0, 0, OUTPUT_WIDTH, finalCanvas.height,
+        0, 0, OUTPUT_WIDTH * SUPERSAMPLE, Math.ceil(y) * SUPERSAMPLE,
         0, 0, OUTPUT_WIDTH, finalCanvas.height
     );
     aplicarPretoBrancoPuro(finalCanvas);
