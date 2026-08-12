@@ -35,7 +35,11 @@ const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-ser
 // mancha ao serem convertidos para preto/branco puro. Usada só nos
 // números (pesos, momentos, avisos); os títulos/etiquetas continuam
 // na fonte normal para haver contraste hierárquico.
-const MONO_FONT_FAMILY = "ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
+// Courier New primeiro: é a fonte clássica de máquina de escrever (já
+// vem instalada no iOS/macOS), com dígitos ainda mais distintos entre
+// si do que o SF Mono (mais moderno/geométrico) — só cai para este
+// último se o Courier não estiver disponível.
+const MONO_FONT_FAMILY = "'Courier New', Courier, ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
 // Desenhar directamente a 576px faz o texto perder detalhe nas curvas
 // (poucos pixels para definir a barriga de um 6/9) ainda antes de
 // convertermos para preto/branco puro — a nossa própria imagem já saía
