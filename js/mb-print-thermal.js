@@ -17,7 +17,7 @@
 // =====================================================
 
 const PAGE_WIDTH_MM = 80; // largura do rolo térmico
-const MARGIN_MM = 4;
+const MARGIN_MM = 2; // margem mínima — mais do que isto e a maioria das impressoras térmicas já corta fisicamente perto do bordo
 const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - MARGIN_MM * 2;
 const ENVELOPE_EMBED_WIDTH_PX = 1600; // resolução da imagem do envelope incorporada no PDF — dá margem de sobra sem inchar o ficheiro
 const FONT_NAME = "courier"; // fonte base do PDF (sempre disponível, sem precisar de embutir nada) — igual em toda a parte, texto e números
@@ -292,9 +292,9 @@ function elementoParaDataUrl(imgEl) {
 function construirReciboPDF(timestamp) {
     const rows = buildRows();
 
-    const LINE_LABEL_H = 4.6;
-    const LINE_SECOND_H = 3.2;
-    const ROW_PAD = 1;
+    const LINE_LABEL_H = 4;
+    const LINE_SECOND_H = 2.8;
+    const ROW_PAD = 0.6;
 
     let y = MARGIN_MM;
     const desenhos = [];
@@ -305,29 +305,29 @@ function construirReciboPDF(timestamp) {
         const logoWmm = 26;
         const logoHmm = logoWmm * (logoImg.naturalHeight / logoImg.naturalWidth);
         desenhos.push({ tipo: "imagem-el", el: logoImg, x: (PAGE_WIDTH_MM - logoWmm) / 2, y, w: logoWmm, h: logoHmm });
-        y += logoHmm + 3;
+        y += logoHmm + 2;
     }
 
     // --- Título / aeronave / leg / hora ---
     desenhos.push({ tipo: "texto", texto: "Weight & Balance", x: PAGE_WIDTH_MM / 2, y: y + 4, tamanho: 15, align: "center" });
-    y += 8;
+    y += 6.5;
 
     const acSelected = getEl("ac-selected");
     const nomeLeg = getEl("nomeLeg");
     if (acSelected) {
         desenhos.push({ tipo: "texto", texto: acSelected, x: PAGE_WIDTH_MM / 2, y: y + 3, tamanho: 10, align: "center" });
-        y += 4.5;
+        y += 3.6;
     }
     if (nomeLeg) {
         desenhos.push({ tipo: "texto", texto: nomeLeg, x: PAGE_WIDTH_MM / 2, y: y + 3, tamanho: 10, align: "center" });
-        y += 4.5;
+        y += 3.6;
     }
 
     desenhos.push({ tipo: "texto", texto: timestamp, x: PAGE_WIDTH_MM / 2, y: y + 2.6, tamanho: 7, align: "center" });
-    y += 6;
+    y += 4.5;
 
     desenhos.push({ tipo: "linha", x1: MARGIN_MM, x2: PAGE_WIDTH_MM - MARGIN_MM, y, espessura: 0.4 });
-    y += 1.5;
+    y += 1;
 
     // --- Linhas da tabela ---
     rows.forEach(row => {
@@ -336,7 +336,7 @@ function construirReciboPDF(timestamp) {
         const rowH = ROW_PAD + LINE_LABEL_H + secondH + ROW_PAD;
         const rowTop = y;
 
-        let ty = rowTop + ROW_PAD + 3;
+        let ty = rowTop + ROW_PAD + 2.6;
         desenhos.push({ tipo: "texto", texto: row.label, x: MARGIN_MM, y: ty, tamanho: 9.5, align: "left" });
         desenhos.push({ tipo: "texto", texto: String(row.weight ?? "0"), x: PAGE_WIDTH_MM - MARGIN_MM, y: ty, tamanho: 12, align: "right" });
 
@@ -354,7 +354,7 @@ function construirReciboPDF(timestamp) {
         desenhos.push({ tipo: "linha", x1: MARGIN_MM, x2: PAGE_WIDTH_MM - MARGIN_MM, y, espessura: 0.15 });
     });
 
-    y += 3;
+    y += 1.5;
 
     // --- Envelope CG ---
     const envelopeImg = document.getElementById("loadsheet-base");
