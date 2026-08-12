@@ -35,7 +35,11 @@ const FONT_FAMILY = "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-ser
 // mancha ao serem convertidos para preto/branco puro. Usada só nos
 // números (pesos, momentos, avisos); os títulos/etiquetas continuam
 // na fonte normal para haver contraste hierárquico.
-const MONO_FONT_FAMILY = "ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
+// Courier New primeiro: é a fonte clássica de máquina de escrever (já
+// vem instalada no iOS/macOS), com dígitos ainda mais distintos entre
+// si do que o SF Mono (mais moderno/geométrico) — só cai para este
+// último se o Courier não estiver disponível.
+const MONO_FONT_FAMILY = "'Courier New', Courier, ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
 // Desenhar directamente a 576px faz o texto perder detalhe nas curvas
 // (poucos pixels para definir a barriga de um 6/9) ainda antes de
 // convertermos para preto/branco puro — a nossa própria imagem já saía
@@ -338,18 +342,13 @@ function desenharRecibo(timestamp) {
         ctx.textAlign = "left";
         ctx.fillText(row.label, MARGIN, ty);
 
+        // Nota: já experimentámos reforçar isto com um traço extra por
+        // cima (faux bold), mas isso fecha as aberturas dos dígitos
+        // (6/9/8/0 ficam uma mancha) — pior, não melhor. O peso "bold"
+        // da própria fonte, já com supersampling, chega perfeitamente.
         ctx.font = `bold 19px ${MONO_FONT_FAMILY}`;
         ctx.textAlign = "right";
-        const weightText = String(row.weight ?? "0");
-        const weightX = OUTPUT_WIDTH - MARGIN;
-        ctx.fillText(weightText, weightX, ty);
-        // Reforça (faux bold) os números mais importantes do talão:
-        // um traço fino por cima do preenchimento fecha as "barrigas"
-        // de dígitos como 6/9/5, que senão colapsam ao converter para
-        // preto/branco puro.
-        ctx.lineWidth = 0.8;
-        ctx.strokeStyle = "#111111";
-        ctx.strokeText(weightText, weightX, ty);
+        ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
 
         ty += 18;
         if (row.moment) {
