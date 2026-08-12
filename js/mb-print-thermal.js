@@ -292,9 +292,9 @@ function elementoParaDataUrl(imgEl) {
 function construirReciboPDF(timestamp) {
     const rows = buildRows();
 
-    const LINE_LABEL_H = 5.5;
-    const LINE_SECOND_H = 3.6;
-    const ROW_PAD = 1.6;
+    const LINE_LABEL_H = 4.6;
+    const LINE_SECOND_H = 3.2;
+    const ROW_PAD = 1;
 
     let y = MARGIN_MM;
     const desenhos = [];
@@ -336,7 +336,7 @@ function construirReciboPDF(timestamp) {
         const rowH = ROW_PAD + LINE_LABEL_H + secondH + ROW_PAD;
         const rowTop = y;
 
-        let ty = rowTop + ROW_PAD + 3.6;
+        let ty = rowTop + ROW_PAD + 3;
         desenhos.push({ tipo: "texto", texto: row.label, x: MARGIN_MM, y: ty, tamanho: 9.5, align: "left" });
         desenhos.push({ tipo: "texto", texto: String(row.weight ?? "0"), x: PAGE_WIDTH_MM - MARGIN_MM, y: ty, tamanho: 12, align: "right" });
 
@@ -371,19 +371,30 @@ function construirReciboPDF(timestamp) {
         // etiqueta ao lado, não a cor.
         const svg = document.getElementById("cg-svg");
         if (svg) {
-            const scaleX = imgWmm / 400;
-            const scaleY = imgHmm / 300;
+            // A viewBox do SVG (400x300, proporção 4:3) não bate certo com a
+            // proporção real das imagens do envelope (mais altas que largas,
+            // ~0.90) — por isso o mb.html, sem preserveAspectRatio definido,
+            // usa o comportamento por omissão do SVG ("xMidYMid meet"): um
+            // único factor de escala uniforme, com o conteúdo centrado e
+            // espaço vazio ("letterboxing") a preencher a diferença. Replica-
+            // -se aqui esse mesmo cálculo — escalar X e Y de forma
+            // independente (como se fazia antes) distorcia e desalinhava os
+            // pontos face ao que se vê no ecrã.
+            const VB_W = 400, VB_H = 300;
+            const scale = Math.min(imgWmm / VB_W, imgHmm / VB_H);
+            const offsetX = (imgWmm - VB_W * scale) / 2;
+            const offsetY = (imgHmm - VB_H * scale) / 2;
 
             svg.querySelectorAll("circle.ponto").forEach(circle => {
-                const cx = MARGIN_MM + parseFloat(circle.getAttribute("cx")) * scaleX;
-                const cy = y + parseFloat(circle.getAttribute("cy")) * scaleY;
-                const r = Math.max(0.9, parseFloat(circle.getAttribute("r")) * ((scaleX + scaleY) / 2));
+                const cx = MARGIN_MM + offsetX + parseFloat(circle.getAttribute("cx")) * scale;
+                const cy = y + offsetY + parseFloat(circle.getAttribute("cy")) * scale;
+                const r = Math.max(0.9, parseFloat(circle.getAttribute("r")) * scale);
                 desenhos.push({ tipo: "circulo", x: cx, y: cy, r });
             });
 
             svg.querySelectorAll("text.label").forEach(text => {
-                const tx = MARGIN_MM + parseFloat(text.getAttribute("x")) * scaleX;
-                const ty2 = y + parseFloat(text.getAttribute("y")) * scaleY;
+                const tx = MARGIN_MM + offsetX + parseFloat(text.getAttribute("x")) * scale;
+                const ty2 = y + offsetY + parseFloat(text.getAttribute("y")) * scale;
                 desenhos.push({
                     tipo: "texto",
                     texto: text.textContent,
