@@ -266,6 +266,14 @@ function desenharRecibo(timestamp) {
     work.height = WORK_HEIGHT * SUPERSAMPLE;
     const ctx = work.getContext("2d");
     ctx.scale(SUPERSAMPLE, SUPERSAMPLE);
+    // As imagens do envelope CG (img/serieXXX.png) vêm gigantes (na ordem
+    // dos 11-15 mil px de largura) e são reduzidas para os nossos ~1150px
+    // de trabalho — mais de 10x. Com a qualidade de redimensionamento por
+    // omissão, as linhas finas do gráfico ficam pontilhadas/quebradas
+    // (aliasing). "high" usa um filtro melhor, que preserva muito mais
+    // esse detalhe fino ao reduzir tanto de uma vez.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, OUTPUT_WIDTH, WORK_HEIGHT);
     ctx.textBaseline = "alphabetic";
@@ -443,14 +451,12 @@ function desenharRecibo(timestamp) {
 // que os converte com o seu próprio dithering (pensado para fotos), e o
 // texto sai esfumado/"borrado". Ao forçar aqui cada pixel para preto ou
 // branco puro, não sobra cinzento nenhum para essa conversão estragar.
-// 165 era o limiar validado no antigo caminho Bluetooth directo — mas
-// esse desenhava directamente à resolução final. Agora que reduzimos de
-// uma imagem a 2x (supersampling), os bordos ficam com uma transição de
-// cinzentos mais suave/gradual do que antes, e com 165 alguns traços
-// finos (que deviam ficar pretos) ficavam do lado de fora do corte e
-// desapareciam. Um limiar mais alto classifica mais desses cinzentos
-// intermédios como preto, em vez de os perder.
-const THERMAL_BW_THRESHOLD = 200;
+// Chegámos a subir isto para 200 a pensar que recuperava traços finos
+// perdidos — mas a causa real era a qualidade do redimensionamento da
+// imagem do envelope (ver imageSmoothingQuality acima), não o limiar.
+// Um limiar mais alto só engordava as letras sem resolver o problema.
+// De volta ao valor original, validado no antigo caminho Bluetooth.
+const THERMAL_BW_THRESHOLD = 165;
 function aplicarPretoBrancoPuro(canvas) {
     const ctx = canvas.getContext("2d");
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
