@@ -354,11 +354,18 @@ function desenharRecibo(timestamp) {
             const scaleX = imgW / 400;
             const scaleY = imgH / 300;
 
+            // Os pontos vêm com cores (azul/verde/laranja) no SVG do ecrã,
+            // mas numa impressora térmica só existe preto e branco — e o
+            // laranja do LDG, em particular, é claro demais e acabava
+            // classificado como "branco" pelo limiar preto/branco puro
+            // (fica invisível). Desenhamos sempre a preto aqui; quem
+            // identifica cada ponto é a etiqueta ("ZFW"/"TOW"/"LDG") ao
+            // lado, não a cor.
             svg.querySelectorAll("circle.ponto").forEach(circle => {
                 const cx = parseFloat(circle.getAttribute("cx")) * scaleX;
                 const cy = y + parseFloat(circle.getAttribute("cy")) * scaleY;
-                const r = Math.max(3, parseFloat(circle.getAttribute("r")) * ((scaleX + scaleY) / 2));
-                ctx.fillStyle = circle.getAttribute("fill") || "#000";
+                const r = Math.max(4, parseFloat(circle.getAttribute("r")) * ((scaleX + scaleY) / 2));
+                ctx.fillStyle = "#000000";
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, 0, Math.PI * 2);
                 ctx.fill();
@@ -367,7 +374,7 @@ function desenharRecibo(timestamp) {
             svg.querySelectorAll("text.label").forEach(text => {
                 const tx = parseFloat(text.getAttribute("x")) * scaleX;
                 const ty2 = y + parseFloat(text.getAttribute("y")) * scaleY;
-                ctx.fillStyle = text.getAttribute("fill") || "#000";
+                ctx.fillStyle = "#000000";
                 ctx.font = `bold 13px ${FONT_FAMILY}`;
                 ctx.textAlign = text.getAttribute("text-anchor") === "end" ? "right" : "left";
                 ctx.fillText(text.textContent, tx, ty2);
