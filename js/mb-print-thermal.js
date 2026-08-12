@@ -254,6 +254,58 @@ async function gerarImagemTermica({ silent = false } = {}) {
     }
 }
 
+// As imagens do envelope CG (img/serieXXX.png) vêm gigantes (algumas com
+// mais de 15000px de largura) e têm de ser reduzidas para perto de
+// 1000-2000px — mais de 10x de uma só vez. Mesmo com boa qualidade de
+// filtro, os browsers não conseguem preservar bem traços finos (as
+// diagonais da grelha) numa redução tão brutal num único passo — saem
+// aos pontos em vez de linha contínua. Reduzir sempre a metade de cada
+// vez (o browser filtra isso muito bem) e repetir até chegar perto do
+// tamanho final preserva muito mais detalhe fino.
+// dw/dh são o tamanho de destino em unidades "lógicas" (o ctx pode já ter
+// um ctx.scale() activo, ex: o supersampling em desenharRecibo) — por
+// isso o alvo real em pixels físicos é dw*escalaCtx/dh*escalaCtx, e é
+// esse valor que interessa para decidir quantas vezes reduzir a metade.
+function desenharImagemReduzidaEmEtapas(ctx, img, dx, dy, dw, dh, escalaCtx = 1) {
+    const MAX_INTERMEDIATE = 4096; // limite seguro de tamanho de canvas no Safari/iOS
+    const alvoLargura = dw * escalaCtx;
+    const alvoAltura = dh * escalaCtx;
+    let origem = img;
+    let largura = img.naturalWidth;
+    let altura = img.naturalHeight;
+
+    if (largura > MAX_INTERMEDIATE || altura > MAX_INTERMEDIATE) {
+        const escala = MAX_INTERMEDIATE / Math.max(largura, altura);
+        largura = Math.round(largura * escala);
+        altura = Math.round(altura * escala);
+        const c = document.createElement("canvas");
+        c.width = largura;
+        c.height = altura;
+        const cctx = c.getContext("2d");
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = "high";
+        cctx.drawImage(img, 0, 0, largura, altura);
+        origem = c;
+    }
+
+    while (largura > alvoLargura * 2 && altura > alvoAltura * 2) {
+        const novaLargura = Math.round(largura / 2);
+        const novaAltura = Math.round(altura / 2);
+        const c = document.createElement("canvas");
+        c.width = novaLargura;
+        c.height = novaAltura;
+        const cctx = c.getContext("2d");
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = "high";
+        cctx.drawImage(origem, 0, 0, novaLargura, novaAltura);
+        origem = c;
+        largura = novaLargura;
+        altura = novaAltura;
+    }
+
+    ctx.drawImage(origem, dx, dy, dw, dh);
+}
+
 function desenharRecibo(timestamp) {
     // Canvas "de trabalho" bem alto — no fim recorta-se só o espaço usado.
     // Físicamente é SUPERSAMPLE vezes maior; o ctx.scale() abaixo faz com
@@ -292,11 +344,11 @@ function desenharRecibo(timestamp) {
     // --- Título / aeronave / leg / hora ---
     ctx.fillStyle = "#111111";
     ctx.textAlign = "center";
-    ctx.font = `bold 28px ${FONT_FAMILY}`;
+    ctx.font = `28px ${FONT_FAMILY}`;
     ctx.fillText("Weight & Balance", OUTPUT_WIDTH / 2, y + 22);
     y += 34;
 
-    ctx.font = `600 16px ${FONT_FAMILY}`;
+    ctx.font = `16px ${FONT_FAMILY}`;
     const acSelected = getEl("ac-selected");
     const nomeLeg = getEl("nomeLeg");
     if (acSelected) {
@@ -342,31 +394,27 @@ function desenharRecibo(timestamp) {
 
         let ty = rowTop + 8 + 18;
         ctx.fillStyle = "#111111";
-        ctx.font = `600 17px ${FONT_FAMILY}`;
+        ctx.font = `17px ${FONT_FAMILY}`;
         ctx.textAlign = "left";
         ctx.fillText(row.label, MARGIN, ty);
 
         // Nota: já experimentámos reforçar isto com um traço extra por
         // cima (faux bold), mas isso fecha as aberturas dos dígitos
-        // (6/9/8/0 ficam uma mancha) — pior, não melhor. O peso "bold"
-        // da própria fonte, já com supersampling, chega perfeitamente.
-        ctx.font = `bold 19px ${FONT_FAMILY}`;
+        // (6/9/8/0 ficam uma mancha) — pior, não melhor.
+        ctx.font = `19px ${FONT_FAMILY}`;
         ctx.textAlign = "right";
         ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
 
         ty += 18;
         if (row.moment) {
-            // 600 em vez de normal: traços finos são os primeiros a
-            // esbater/desaparecer em qualquer redimensionamento posterior
-            // (feito pela app que recebe a imagem, ex: Thermer).
-            ctx.font = `600 12px ${FONT_FAMILY}`;
+            ctx.font = `12px ${FONT_FAMILY}`;
             ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
-            ctx.fillText(`Mom ${row.moment}`, MARGIN, ty);
+            ctx.fillText(`Moment ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `600 12px ${FONT_FAMILY}`;
+                ctx.font = `12px ${FONT_FAMILY}`;
                 ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
                 ctx.textAlign = "right";
                 ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
@@ -389,7 +437,7 @@ function desenharRecibo(timestamp) {
     if (envelopeImg && envelopeImg.naturalWidth) {
         const imgW = OUTPUT_WIDTH;
         const imgH = imgW * (envelopeImg.naturalHeight / envelopeImg.naturalWidth);
-        ctx.drawImage(envelopeImg, 0, y, imgW, imgH);
+        desenharImagemReduzidaEmEtapas(ctx, envelopeImg, 0, y, imgW, imgH, SUPERSAMPLE);
 
         // Pontos ZFW/TOW/LDG lidos directamente do SVG já desenhado pelo
         // mb.js (desenharPontos()), para não duplicar essa lógica aqui.
@@ -419,7 +467,7 @@ function desenharRecibo(timestamp) {
                 const tx = parseFloat(text.getAttribute("x")) * scaleX;
                 const ty2 = y + parseFloat(text.getAttribute("y")) * scaleY;
                 ctx.fillStyle = "#000000";
-                ctx.font = `bold 13px ${FONT_FAMILY}`;
+                ctx.font = `13px ${FONT_FAMILY}`;
                 ctx.textAlign = text.getAttribute("text-anchor") === "end" ? "right" : "left";
                 ctx.fillText(text.textContent, tx, ty2);
             });
