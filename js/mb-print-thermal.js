@@ -344,11 +344,11 @@ function desenharRecibo(timestamp) {
     // --- Título / aeronave / leg / hora ---
     ctx.fillStyle = "#111111";
     ctx.textAlign = "center";
-    ctx.font = `bold 28px ${FONT_FAMILY}`;
+    ctx.font = `28px ${FONT_FAMILY}`;
     ctx.fillText("Weight & Balance", OUTPUT_WIDTH / 2, y + 22);
     y += 34;
 
-    ctx.font = `600 16px ${FONT_FAMILY}`;
+    ctx.font = `16px ${FONT_FAMILY}`;
     const acSelected = getEl("ac-selected");
     const nomeLeg = getEl("nomeLeg");
     if (acSelected) {
@@ -394,31 +394,27 @@ function desenharRecibo(timestamp) {
 
         let ty = rowTop + 8 + 18;
         ctx.fillStyle = "#111111";
-        ctx.font = `600 17px ${FONT_FAMILY}`;
+        ctx.font = `17px ${FONT_FAMILY}`;
         ctx.textAlign = "left";
         ctx.fillText(row.label, MARGIN, ty);
 
         // Nota: já experimentámos reforçar isto com um traço extra por
         // cima (faux bold), mas isso fecha as aberturas dos dígitos
-        // (6/9/8/0 ficam uma mancha) — pior, não melhor. O peso "bold"
-        // da própria fonte, já com supersampling, chega perfeitamente.
-        ctx.font = `bold 19px ${FONT_FAMILY}`;
+        // (6/9/8/0 ficam uma mancha) — pior, não melhor.
+        ctx.font = `19px ${FONT_FAMILY}`;
         ctx.textAlign = "right";
         ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
 
         ty += 18;
         if (row.moment) {
-            // 600 em vez de normal: traços finos são os primeiros a
-            // esbater/desaparecer em qualquer redimensionamento posterior
-            // (feito pela app que recebe a imagem, ex: Thermer).
-            ctx.font = `600 12px ${FONT_FAMILY}`;
+            ctx.font = `12px ${FONT_FAMILY}`;
             ctx.fillStyle = "#333333";
             ctx.textAlign = "left";
             ctx.fillText(`Moment ${row.moment}`, MARGIN, ty);
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `600 12px ${FONT_FAMILY}`;
+                ctx.font = `12px ${FONT_FAMILY}`;
                 ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
                 ctx.textAlign = "right";
                 ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
@@ -471,7 +467,7 @@ function desenharRecibo(timestamp) {
                 const tx = parseFloat(text.getAttribute("x")) * scaleX;
                 const ty2 = y + parseFloat(text.getAttribute("y")) * scaleY;
                 ctx.fillStyle = "#000000";
-                ctx.font = `bold 13px ${FONT_FAMILY}`;
+                ctx.font = `13px ${FONT_FAMILY}`;
                 ctx.textAlign = text.getAttribute("text-anchor") === "end" ? "right" : "left";
                 ctx.fillText(text.textContent, tx, ty2);
             });
