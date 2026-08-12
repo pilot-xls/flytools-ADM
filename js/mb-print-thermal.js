@@ -1,99 +1,29 @@
 // =====================================================
 // mb-print-thermal.js
-// Gera a imagem do talão desenhando-a directamente num <canvas>
-// (Canvas 2D API) em vez de tirar "print" à página com o
-// html2canvas. As tentativas anteriores com html2canvas (grid,
-// float, tabela nativa) perderam sempre texto/posições — é um
-// problema conhecido do html2canvas ao tentar reproduzir CSS à
-// mão. Desenhar directamente é o mesmo método que geradores de
-// recibo "a sério" costumam usar: zero dependência de como a
-// página está estilizada, controlo total sobre o resultado.
+// Gera o talão como um PDF a sério (jsPDF): texto vetorial real
+// (não pixelizado) + a imagem do envelope CG incorporada, com a
+// página já definida a 80mm de largura por altura ajustada ao
+// conteúdo. Isto substitui a abordagem anterior (desenhar tudo num
+// <canvas> e exportar como PNG), que exigia truques de preto/branco
+// puro, supersampling e redução em etapas só para compensar o facto
+// de sermos nós a rasterizar o texto — um PDF deixa o texto como
+// texto, e o motor de impressão/visualizador trata da nitidez.
 //
-// A imagem é gerada automaticamente ao abrir a página. Há dois botões:
-// "Imprimir / Guardar PDF" (window.print()) para impressoras normais
-// AirPrint ou para guardar um PDF; e "Partilhar imagem" (Web Share API
-// com ficheiros) para apps como o Thermer, que recebem a imagem em
-// bruto — isto evita o window.print(), porque nesse caminho o iOS
-// obriga a paginar para A3/A4/etc. antes de partilhar, distorcendo o
-// tamanho pensado para o rolo de 80mm.
+// Também evita o mesmo problema de sempre com o window.print(): no
+// iOS, o ecrã de impressão nativo só oferece tamanhos de papel fixos
+// (A3/A4/etc., nunca 80mm/rolo) — mas como agora é a própria PDF que
+// já vem com o tamanho de página embutido, abrir/partilhar esse PDF
+// não passa por esse ecrã, e o tamanho fica correto onde quer que vá.
 // =====================================================
 
-// 576px = 8 pontos/mm × 72mm — a largura imprimível real da grande maioria
-// das impressoras térmicas ESC/POS de "80mm" (o rolo tem 80mm, mas a área
-// imprimível costuma ficar-se pelos 72mm por causa das margens laterais).
-// Se a nossa imagem tiver uma largura diferente desta, a app recetora
-// (ex: Thermer) tem de a redimensionar antes de imprimir — e mesmo
-// partindo de preto/branco puro, esse redimensionamento reintroduz
-// cinzentos nos bordos do texto, o que dá o aspecto "borrado".
-const OUTPUT_WIDTH = 576;
-const MARGIN = 22;
-// Fontes monoespaçadas têm formas mais geométricas e "aberturas" maiores
-// do que as fontes normais do sistema (que têm curvas suaves, pensadas
-// para ecrã, não para impressão térmica a baixa resolução) — números
-// como 5/6/9 deixam de colapsar numa mancha ao serem convertidos para
-// preto/branco puro. Usada em todo o talão, texto e números, para
-// consistência. Courier New primeiro: é a fonte clássica de máquina de
-// escrever (já vem instalada no iOS/macOS); só cai para as outras se o
-// Courier não estiver disponível.
-const FONT_FAMILY = "'Courier New', Courier, ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', Consolas, monospace";
-// Desenhar directamente a 576px faz o texto perder detalhe nas curvas
-// (poucos pixels para definir a barriga de um 6/9) ainda antes de
-// convertermos para preto/branco puro — a nossa própria imagem já saía
-// em "degraus". Desenhamos tudo a esta escala mais alta e reduzimos
-// (com boa interpolação) para o tamanho final só no fim, o que dá
-// contornos muito mais limpos sem mudar a largura final de 576px
-// (continua a bater certo com a impressora, ver OUTPUT_WIDTH acima).
-const SUPERSAMPLE = 2;
 const PAGE_WIDTH_MM = 80; // largura do rolo térmico
+const MARGIN_MM = 4;
+const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - MARGIN_MM * 2;
+const ENVELOPE_EMBED_WIDTH_PX = 1600; // resolução da imagem do envelope incorporada no PDF — dá margem de sobra sem inchar o ficheiro
+const FONT_NAME = "courier"; // fonte base do PDF (sempre disponível, sem precisar de embutir nada) — igual em toda a parte, texto e números
 
-// O CSS "@page { size: 80mm auto; }" não é fiável — muitos motores de
-// impressão ignoram a palavra "auto" para a altura e caem de volta para
-// A4/Letter, o que faz o conteúdo (pensado para 80mm) ser esticado/
-// reposicionado para preencher essa folha maior. Em vez disso calculamos
-// aqui a altura exacta (em mm) a partir da proporção real da imagem
-// gerada, e definimos um @page com as duas dimensões fixas — isso sim
-// é respeitado de forma consistente ao imprimir/guardar como PDF.
-function atualizarTamanhoPaginaImpressao(canvas) {
-    const alturaMm = PAGE_WIDTH_MM * (canvas.height / canvas.width);
-    let styleEl = document.getElementById("mbThermalPageSize");
-    if (!styleEl) {
-        styleEl = document.createElement("style");
-        styleEl.id = "mbThermalPageSize";
-        document.head.appendChild(styleEl);
-    }
-    styleEl.textContent = `@page { size: ${PAGE_WIDTH_MM}mm ${alturaMm.toFixed(2)}mm; margin: 0; }`;
-}
-
-let lastReceiptCanvas = null; // guarda o último recibo gerado, para o botão "Partilhar imagem" reutilizar
-
-// Partilha a imagem gerada como ficheiro em bruto (Web Share API), em vez
-// de a imprimir — assim apps como o Thermer recebem-na tal como foi
-// desenhada (já à proporção certa para 80mm), sem passar pelo mecanismo
-// de impressão do iOS, que só paginação para tamanhos fixos (A3, A4, ...).
-async function partilharImagemTermica() {
-    if (!lastReceiptCanvas) return;
-
-    const blob = await new Promise(resolve => lastReceiptCanvas.toBlob(resolve, "image/png"));
-    if (!blob) {
-        alert("Não foi possível preparar a imagem para partilha.");
-        return;
-    }
-
-    const file = new File([blob], "weight-balance-80mm.png", { type: "image/png" });
-
-    if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
-        alert("Este browser não suporta partilhar esta imagem diretamente — usa \"Guardar imagem (PNG)\" e partilha esse ficheiro manualmente.");
-        return;
-    }
-
-    try {
-        await navigator.share({ files: [file], title: "Weight & Balance" });
-    } catch (error) {
-        if (error?.name !== "AbortError") {
-            console.error("Erro ao partilhar a imagem:", error);
-        }
-    }
-}
+let lastReciboPdfBlob = null;
+let lastReciboPdfUrl = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -101,8 +31,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (typeof exec_calculo === "function") {
             await exec_calculo();
         }
-        // Gera a imagem logo à entrada, sem esperar por um clique manual.
-        await gerarImagemTermica({ silent: true });
+        // Gera o PDF logo à entrada, sem esperar por um clique manual.
+        await gerarReciboPDF({ silent: true });
     } catch (error) {
         console.error("Erro ao preparar os dados:", error);
     }
@@ -110,8 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btnPrintThermalImage = document.getElementById("btnPrintThermalImage");
     if (btnPrintThermalImage) {
         btnPrintThermalImage.addEventListener("click", async () => {
-            await gerarImagemTermica({ silent: true });
-            window.print();
+            await gerarReciboPDF({ silent: true });
+            if (lastReciboPdfUrl) {
+                window.open(lastReciboPdfUrl, "_blank");
+            }
         });
     }
 
@@ -119,8 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (btnShareThermalImage && navigator.share) {
         btnShareThermalImage.hidden = false;
         btnShareThermalImage.addEventListener("click", async () => {
-            await gerarImagemTermica({ silent: true });
-            await partilharImagemTermica();
+            await gerarReciboPDF({ silent: true });
+            await partilharReciboPDF();
         });
     }
 
@@ -220,26 +152,30 @@ function buildRows() {
     ];
 }
 
-// --- Geração da imagem ---
+// --- Geração do PDF ---
 
-async function gerarImagemTermica({ silent = false } = {}) {
+async function gerarReciboPDF({ silent = false } = {}) {
     try {
         if (typeof exec_calculo === "function") {
             await exec_calculo();
         }
         const timestamp = atualizarDataHoraImpressao();
 
-        const finalCanvas = desenharRecibo(timestamp);
-        lastReceiptCanvas = finalCanvas;
-        atualizarTamanhoPaginaImpressao(finalCanvas);
+        const doc = construirReciboPDF(timestamp);
+        const blob = doc.output("blob");
+
+        if (lastReciboPdfUrl) {
+            URL.revokeObjectURL(lastReciboPdfUrl);
+        }
+        lastReciboPdfBlob = blob;
+        lastReciboPdfUrl = URL.createObjectURL(blob);
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
-        const img = document.getElementById("mbThermalPreviewImg");
+        const frame = document.getElementById("mbThermalPreviewFrame");
         const downloadLink = document.getElementById("mbThermalDownloadLink");
 
-        const dataUrl = finalCanvas.toDataURL("image/png");
-        if (img) img.src = dataUrl;
-        if (downloadLink) downloadLink.href = dataUrl;
+        if (frame) frame.src = lastReciboPdfUrl;
+        if (downloadLink) downloadLink.href = lastReciboPdfUrl;
         if (wrap) {
             wrap.hidden = false;
             if (!silent) {
@@ -247,29 +183,43 @@ async function gerarImagemTermica({ silent = false } = {}) {
             }
         }
     } catch (error) {
-        console.error("Erro ao gerar a imagem térmica:", error);
+        console.error("Erro ao gerar o PDF do talão:", error);
         if (!silent) {
-            alert("Não foi possível gerar a imagem: " + (error?.message || error));
+            alert("Não foi possível gerar o PDF: " + (error?.message || error));
+        }
+    }
+}
+
+// Partilha o PDF gerado (Web Share API) — apps como o Thermer recebem o
+// ficheiro tal como foi construído, já com o tamanho de página certo.
+async function partilharReciboPDF() {
+    if (!lastReciboPdfBlob) return;
+
+    const file = new File([lastReciboPdfBlob], "weight-balance-80mm.pdf", { type: "application/pdf" });
+
+    if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+        alert("Este browser não suporta partilhar este PDF diretamente — usa \"Guardar PDF\" e partilha esse ficheiro manualmente.");
+        return;
+    }
+
+    try {
+        await navigator.share({ files: [file], title: "Weight & Balance" });
+    } catch (error) {
+        if (error?.name !== "AbortError") {
+            console.error("Erro ao partilhar o PDF:", error);
         }
     }
 }
 
 // As imagens do envelope CG (img/serieXXX.png) vêm gigantes (algumas com
-// mais de 15000px de largura) e têm de ser reduzidas para perto de
-// 1000-2000px — mais de 10x de uma só vez. Mesmo com boa qualidade de
-// filtro, os browsers não conseguem preservar bem traços finos (as
-// diagonais da grelha) numa redução tão brutal num único passo — saem
-// aos pontos em vez de linha contínua. Reduzir sempre a metade de cada
-// vez (o browser filtra isso muito bem) e repetir até chegar perto do
-// tamanho final preserva muito mais detalhe fino.
-// dw/dh são o tamanho de destino em unidades "lógicas" (o ctx pode já ter
-// um ctx.scale() activo, ex: o supersampling em desenharRecibo) — por
-// isso o alvo real em pixels físicos é dw*escalaCtx/dh*escalaCtx, e é
-// esse valor que interessa para decidir quantas vezes reduzir a metade.
-function desenharImagemReduzidaEmEtapas(ctx, img, dx, dy, dw, dh, escalaCtx = 1) {
+// mais de 15000px de largura). Embutir isso directamente no PDF criaria
+// um ficheiro enorme e lento a partilhar; reduzimos primeiro para uma
+// resolução generosa mas razoável (ENVELOPE_EMBED_WIDTH_PX). Fazemo-lo
+// sempre a metade de cada vez (em vez de um salto grande de uma só vez)
+// porque é isso que preserva bem as linhas finas da grelha — reduções
+// muito agressivas num único passo deixam-nas aos pontos.
+function criarCanvasReduzidoEmEtapas(img, larguraAlvo, alturaAlvo) {
     const MAX_INTERMEDIATE = 4096; // limite seguro de tamanho de canvas no Safari/iOS
-    const alvoLargura = dw * escalaCtx;
-    const alvoAltura = dh * escalaCtx;
     let origem = img;
     let largura = img.naturalWidth;
     let altura = img.naturalHeight;
@@ -288,7 +238,7 @@ function desenharImagemReduzidaEmEtapas(ctx, img, dx, dy, dw, dh, escalaCtx = 1)
         origem = c;
     }
 
-    while (largura > alvoLargura * 2 && altura > alvoAltura * 2) {
+    while (largura > larguraAlvo * 2 && altura > alturaAlvo * 2) {
         const novaLargura = Math.round(largura / 2);
         const novaAltura = Math.round(altura / 2);
         const c = document.createElement("canvas");
@@ -303,219 +253,177 @@ function desenharImagemReduzidaEmEtapas(ctx, img, dx, dy, dw, dh, escalaCtx = 1)
         altura = novaAltura;
     }
 
-    ctx.drawImage(origem, dx, dy, dw, dh);
+    const final = document.createElement("canvas");
+    final.width = larguraAlvo;
+    final.height = alturaAlvo;
+    const fctx = final.getContext("2d");
+    fctx.imageSmoothingEnabled = true;
+    fctx.imageSmoothingQuality = "high";
+    fctx.drawImage(origem, 0, 0, larguraAlvo, alturaAlvo);
+    return final;
 }
 
-function desenharRecibo(timestamp) {
-    // Canvas "de trabalho" bem alto — no fim recorta-se só o espaço usado.
-    // Físicamente é SUPERSAMPLE vezes maior; o ctx.scale() abaixo faz com
-    // que todo o resto do código continue a desenhar com as mesmas
-    // coordenadas/tamanhos de sempre (em unidades "lógicas" de OUTPUT_WIDTH),
-    // só que rasterizadas com mais detalhe.
-    const WORK_HEIGHT = 4000;
-    const work = document.createElement("canvas");
-    work.width = OUTPUT_WIDTH * SUPERSAMPLE;
-    work.height = WORK_HEIGHT * SUPERSAMPLE;
-    const ctx = work.getContext("2d");
-    ctx.scale(SUPERSAMPLE, SUPERSAMPLE);
-    // As imagens do envelope CG (img/serieXXX.png) vêm gigantes (na ordem
-    // dos 11-15 mil px de largura) e são reduzidas para os nossos ~1150px
-    // de trabalho — mais de 10x. Com a qualidade de redimensionamento por
-    // omissão, as linhas finas do gráfico ficam pontilhadas/quebradas
-    // (aliasing). "high" usa um filtro melhor, que preserva muito mais
-    // esse detalhe fino ao reduzir tanto de uma vez.
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, OUTPUT_WIDTH, WORK_HEIGHT);
-    ctx.textBaseline = "alphabetic";
+// A fonte "Courier" standard do PDF só suporta a codificação WinAnsi
+// (essencialmente Latin-1) — mas os números do talão vêm formatados
+// com espaços Unicode "especiais" como separador de milhares (ex:
+// "28 051,1", um "narrow no-break space"), que não existem nessa
+// codificação e faziam o jsPDF espaçar as letras todas de forma
+// estranha nessa linha. Trocamos por um espaço normal antes de desenhar.
+function textoSeguroPdf(str) {
+    return String(str)
+        .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ")
+        .replace(/[\u2010-\u2015]/g, "-")
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"');
+}
 
-    let y = MARGIN;
+function elementoParaDataUrl(imgEl) {
+    const c = document.createElement("canvas");
+    c.width = imgEl.naturalWidth;
+    c.height = imgEl.naturalHeight;
+    c.getContext("2d").drawImage(imgEl, 0, 0);
+    return c.toDataURL("image/png");
+}
+
+// Constrói a lista de elementos a desenhar (texto/linhas/imagem/pontos),
+// medindo a altura total ao mesmo tempo — só depois de sabermos a altura
+// exacta é que criamos o documento jsPDF com o tamanho de página certo
+// (80mm de largura, altura ajustada ao conteúdo deste talão específico).
+function construirReciboPDF(timestamp) {
+    const rows = buildRows();
+
+    const LINE_LABEL_H = 5.5;
+    const LINE_SECOND_H = 3.6;
+    const ROW_PAD = 1.6;
+
+    let y = MARGIN_MM;
+    const desenhos = [];
 
     // --- Logo ---
     const logoImg = document.getElementById("thermalLogo");
     if (logoImg && logoImg.naturalWidth) {
-        const logoW = 130;
-        const logoH = logoW * (logoImg.naturalHeight / logoImg.naturalWidth);
-        ctx.drawImage(logoImg, (OUTPUT_WIDTH - logoW) / 2, y, logoW, logoH);
-        y += logoH + 14;
+        const logoWmm = 26;
+        const logoHmm = logoWmm * (logoImg.naturalHeight / logoImg.naturalWidth);
+        desenhos.push({ tipo: "imagem-el", el: logoImg, x: (PAGE_WIDTH_MM - logoWmm) / 2, y, w: logoWmm, h: logoHmm });
+        y += logoHmm + 3;
     }
 
     // --- Título / aeronave / leg / hora ---
-    ctx.fillStyle = "#111111";
-    ctx.textAlign = "center";
-    ctx.font = `28px ${FONT_FAMILY}`;
-    ctx.fillText("Weight & Balance", OUTPUT_WIDTH / 2, y + 22);
-    y += 34;
+    desenhos.push({ tipo: "texto", texto: "Weight & Balance", x: PAGE_WIDTH_MM / 2, y: y + 4, tamanho: 15, align: "center" });
+    y += 8;
 
-    ctx.font = `16px ${FONT_FAMILY}`;
     const acSelected = getEl("ac-selected");
     const nomeLeg = getEl("nomeLeg");
     if (acSelected) {
-        ctx.fillText(acSelected, OUTPUT_WIDTH / 2, y + 14);
-        y += 20;
+        desenhos.push({ tipo: "texto", texto: acSelected, x: PAGE_WIDTH_MM / 2, y: y + 3, tamanho: 10, align: "center" });
+        y += 4.5;
     }
     if (nomeLeg) {
-        ctx.fillText(nomeLeg, OUTPUT_WIDTH / 2, y + 14);
-        y += 20;
+        desenhos.push({ tipo: "texto", texto: nomeLeg, x: PAGE_WIDTH_MM / 2, y: y + 3, tamanho: 10, align: "center" });
+        y += 4.5;
     }
 
-    ctx.font = `12px ${FONT_FAMILY}`;
-    ctx.fillStyle = "#555555";
-    ctx.fillText(timestamp, OUTPUT_WIDTH / 2, y + 12);
-    y += 26;
+    desenhos.push({ tipo: "texto", texto: timestamp, x: PAGE_WIDTH_MM / 2, y: y + 2.6, tamanho: 7, align: "center" });
+    y += 6;
 
-    // --- Cabeçalho da tabela ---
-    ctx.strokeStyle = "#333333";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(OUTPUT_WIDTH, y);
-    ctx.stroke();
-    y += 4;
+    desenhos.push({ tipo: "linha", x1: MARGIN_MM, x2: PAGE_WIDTH_MM - MARGIN_MM, y, espessura: 0.4 });
+    y += 1.5;
 
     // --- Linhas da tabela ---
-    ctx.textAlign = "left";
-    const rows = buildRows();
     rows.forEach(row => {
+        const infoLinesH = row.info && row.info.length ? row.info.length * LINE_SECOND_H : 0;
+        const secondH = Math.max(row.moment ? LINE_SECOND_H : 0, infoLinesH);
+        const rowH = ROW_PAD + LINE_LABEL_H + secondH + ROW_PAD;
         const rowTop = y;
-        const line1H = 26;
-        const infoLinesH = row.info && row.info.length ? row.info.length * 15 : 0;
-        const line2H = Math.max(row.moment ? 15 : 0, infoLinesH);
-        const rowH = 8 + line1H + line2H + 8;
 
-        if (row.exceeded) {
-            ctx.fillStyle = "#ffe3e3";
-            ctx.fillRect(0, rowTop, OUTPUT_WIDTH, rowH);
-        } else if (row.gray) {
-            ctx.fillStyle = "#f0f0f0";
-            ctx.fillRect(0, rowTop, OUTPUT_WIDTH, rowH);
-        }
+        let ty = rowTop + ROW_PAD + 3.6;
+        desenhos.push({ tipo: "texto", texto: row.label, x: MARGIN_MM, y: ty, tamanho: 9.5, align: "left" });
+        desenhos.push({ tipo: "texto", texto: String(row.weight ?? "0"), x: PAGE_WIDTH_MM - MARGIN_MM, y: ty, tamanho: 12, align: "right" });
 
-        let ty = rowTop + 8 + 18;
-        ctx.fillStyle = "#111111";
-        ctx.font = `17px ${FONT_FAMILY}`;
-        ctx.textAlign = "left";
-        ctx.fillText(row.label, MARGIN, ty);
-
-        // Nota: já experimentámos reforçar isto com um traço extra por
-        // cima (faux bold), mas isso fecha as aberturas dos dígitos
-        // (6/9/8/0 ficam uma mancha) — pior, não melhor.
-        ctx.font = `19px ${FONT_FAMILY}`;
-        ctx.textAlign = "right";
-        ctx.fillText(String(row.weight ?? "0"), OUTPUT_WIDTH - MARGIN, ty);
-
-        ty += 18;
+        ty += LINE_SECOND_H;
         if (row.moment) {
-            ctx.font = `12px ${FONT_FAMILY}`;
-            ctx.fillStyle = "#333333";
-            ctx.textAlign = "left";
-            ctx.fillText(`Moment ${row.moment}`, MARGIN, ty);
+            desenhos.push({ tipo: "texto", texto: `Moment ${row.moment}`, x: MARGIN_MM, y: ty, tamanho: 7, align: "left" });
         }
         if (row.info && row.info.length) {
             row.info.forEach((line, idx) => {
-                ctx.font = `12px ${FONT_FAMILY}`;
-                ctx.fillStyle = line.warning ? "#c0102a" : "#333333";
-                ctx.textAlign = "right";
-                ctx.fillText(line.text, OUTPUT_WIDTH - MARGIN, ty + idx * 15);
+                desenhos.push({ tipo: "texto", texto: line.text, x: PAGE_WIDTH_MM - MARGIN_MM, y: ty + idx * LINE_SECOND_H, tamanho: 7, align: "right" });
             });
         }
 
         y = rowTop + rowH;
-        ctx.strokeStyle = "#dcdcdc";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(OUTPUT_WIDTH, y);
-        ctx.stroke();
+        desenhos.push({ tipo: "linha", x1: MARGIN_MM, x2: PAGE_WIDTH_MM - MARGIN_MM, y, espessura: 0.15 });
     });
 
-    y += 10;
+    y += 3;
 
     // --- Envelope CG ---
     const envelopeImg = document.getElementById("loadsheet-base");
     if (envelopeImg && envelopeImg.naturalWidth) {
-        const imgW = OUTPUT_WIDTH;
-        const imgH = imgW * (envelopeImg.naturalHeight / envelopeImg.naturalWidth);
-        desenharImagemReduzidaEmEtapas(ctx, envelopeImg, 0, y, imgW, imgH, SUPERSAMPLE);
+        const imgWmm = CONTENT_WIDTH_MM;
+        const imgHmm = imgWmm * (envelopeImg.naturalHeight / envelopeImg.naturalWidth);
+        const alturaAlvoPx = Math.round(ENVELOPE_EMBED_WIDTH_PX * (envelopeImg.naturalHeight / envelopeImg.naturalWidth));
+        const canvasReduzido = criarCanvasReduzidoEmEtapas(envelopeImg, ENVELOPE_EMBED_WIDTH_PX, alturaAlvoPx);
+        desenhos.push({ tipo: "imagem-canvas", canvas: canvasReduzido, x: MARGIN_MM, y, w: imgWmm, h: imgHmm });
 
         // Pontos ZFW/TOW/LDG lidos directamente do SVG já desenhado pelo
         // mb.js (desenharPontos()), para não duplicar essa lógica aqui.
+        // Desenhados sempre a preto — quem identifica cada ponto é a
+        // etiqueta ao lado, não a cor.
         const svg = document.getElementById("cg-svg");
         if (svg) {
-            const scaleX = imgW / 400;
-            const scaleY = imgH / 300;
+            const scaleX = imgWmm / 400;
+            const scaleY = imgHmm / 300;
 
-            // Os pontos vêm com cores (azul/verde/laranja) no SVG do ecrã,
-            // mas numa impressora térmica só existe preto e branco — e o
-            // laranja do LDG, em particular, é claro demais e acabava
-            // classificado como "branco" pelo limiar preto/branco puro
-            // (fica invisível). Desenhamos sempre a preto aqui; quem
-            // identifica cada ponto é a etiqueta ("ZFW"/"TOW"/"LDG") ao
-            // lado, não a cor.
             svg.querySelectorAll("circle.ponto").forEach(circle => {
-                const cx = parseFloat(circle.getAttribute("cx")) * scaleX;
+                const cx = MARGIN_MM + parseFloat(circle.getAttribute("cx")) * scaleX;
                 const cy = y + parseFloat(circle.getAttribute("cy")) * scaleY;
-                const r = Math.max(4, parseFloat(circle.getAttribute("r")) * ((scaleX + scaleY) / 2));
-                ctx.fillStyle = "#000000";
-                ctx.beginPath();
-                ctx.arc(cx, cy, r, 0, Math.PI * 2);
-                ctx.fill();
+                const r = Math.max(0.9, parseFloat(circle.getAttribute("r")) * ((scaleX + scaleY) / 2));
+                desenhos.push({ tipo: "circulo", x: cx, y: cy, r });
             });
 
             svg.querySelectorAll("text.label").forEach(text => {
-                const tx = parseFloat(text.getAttribute("x")) * scaleX;
+                const tx = MARGIN_MM + parseFloat(text.getAttribute("x")) * scaleX;
                 const ty2 = y + parseFloat(text.getAttribute("y")) * scaleY;
-                ctx.fillStyle = "#000000";
-                ctx.font = `13px ${FONT_FAMILY}`;
-                ctx.textAlign = text.getAttribute("text-anchor") === "end" ? "right" : "left";
-                ctx.fillText(text.textContent, tx, ty2);
+                desenhos.push({
+                    tipo: "texto",
+                    texto: text.textContent,
+                    x: tx,
+                    y: ty2,
+                    tamanho: 7,
+                    align: text.getAttribute("text-anchor") === "end" ? "right" : "left"
+                });
             });
         }
 
-        y += imgH;
+        y += imgHmm;
     }
 
-    y += MARGIN;
+    y += MARGIN_MM;
 
-    // Recorta o canvas "de trabalho" para o tamanho realmente usado, e
-    // reduz da resolução de supersampling para o tamanho final (576px) —
-    // é esta redução, feita por nós com boa interpolação, que dá
-    // contornos limpos aos textos antes do preto/branco puro.
-    const finalCanvas = document.createElement("canvas");
-    finalCanvas.width = OUTPUT_WIDTH;
-    finalCanvas.height = Math.ceil(y);
-    finalCanvas.getContext("2d").drawImage(
-        work,
-        0, 0, OUTPUT_WIDTH * SUPERSAMPLE, Math.ceil(y) * SUPERSAMPLE,
-        0, 0, OUTPUT_WIDTH, finalCanvas.height
-    );
-    aplicarPretoBrancoPuro(finalCanvas);
-    return finalCanvas;
-}
+    // --- Criar o documento com a altura exacta e "reproduzir" os desenhos ---
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: [PAGE_WIDTH_MM, y], compress: true });
+    doc.setFont(FONT_NAME, "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.setDrawColor(0, 0, 0);
+    doc.setFillColor(0, 0, 0);
 
-// Impressoras térmicas só têm preto ou branco — sem isto, os bordos com
-// anti-aliasing (texto, linhas) chegam como cinzentos à app de impressão,
-// que os converte com o seu próprio dithering (pensado para fotos), e o
-// texto sai esfumado/"borrado". Ao forçar aqui cada pixel para preto ou
-// branco puro, não sobra cinzento nenhum para essa conversão estragar.
-// Chegámos a subir isto para 200 a pensar que recuperava traços finos
-// perdidos — mas a causa real era a qualidade do redimensionamento da
-// imagem do envelope (ver imageSmoothingQuality acima), não o limiar.
-// Um limiar mais alto só engordava as letras sem resolver o problema.
-// De volta ao valor original, validado no antigo caminho Bluetooth.
-const THERMAL_BW_THRESHOLD = 165;
-function aplicarPretoBrancoPuro(canvas) {
-    const ctx = canvas.getContext("2d");
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imgData.data;
-    for (let i = 0; i < data.length; i += 4) {
-        const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-        const alpha = data[i + 3];
-        const branco = alpha < 10 || lum >= THERMAL_BW_THRESHOLD;
-        const valor = branco ? 255 : 0;
-        data[i] = data[i + 1] = data[i + 2] = valor;
-        data[i + 3] = 255; // remove transparência — fundo passa a branco opaco
-    }
-    ctx.putImageData(imgData, 0, 0);
+    desenhos.forEach(d => {
+        if (d.tipo === "texto") {
+            doc.setFontSize(d.tamanho);
+            doc.text(textoSeguroPdf(d.texto), d.x, d.y, { align: d.align });
+        } else if (d.tipo === "linha") {
+            doc.setLineWidth(d.espessura);
+            doc.line(d.x1, d.y, d.x2, d.y);
+        } else if (d.tipo === "circulo") {
+            doc.circle(d.x, d.y, d.r, "F");
+        } else if (d.tipo === "imagem-el") {
+            const dataUrl = elementoParaDataUrl(d.el);
+            if (dataUrl) doc.addImage(dataUrl, "PNG", d.x, d.y, d.w, d.h);
+        } else if (d.tipo === "imagem-canvas") {
+            doc.addImage(d.canvas.toDataURL("image/png"), "PNG", d.x, d.y, d.w, d.h);
+        }
+    });
+
+    return doc;
 }

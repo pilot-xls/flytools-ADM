@@ -9,22 +9,22 @@
         <link href="css/mb-print-thermal.css" rel="stylesheet">
     </head>
     <body class="mb-thermal-body">
-        <div class="mb-thermal-toolbar no-print">
-            <button id="btnPrintThermalImage" type="button" class="btn">Imprimir / Guardar PDF</button>
-            <button id="btnShareThermalImage" type="button" class="btn" hidden>Partilhar imagem</button>
+        <div class="mb-thermal-toolbar">
+            <button id="btnPrintThermalImage" type="button" class="btn">Abrir PDF</button>
+            <button id="btnShareThermalImage" type="button" class="btn" hidden>Partilhar PDF</button>
             <button id="btnClosePrint" type="button" class="btn btn-secondary">Fechar</button>
         </div>
 
-        <!-- Pré-visualização da imagem gerada automaticamente ao abrir a
-             página — já pronta para o botão "Imprimir / Guardar PDF" acima. -->
+        <!-- Pré-visualização do PDF gerado automaticamente ao abrir a
+             página — já pronto para o botão "Abrir PDF" acima. -->
         <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
-            <img id="mbThermalPreviewImg" class="mb-thermal-preview-img" alt="Imagem gerada para impressão térmica">
-            <a id="mbThermalDownloadLink" class="btn no-print" download="weight-balance-80mm.png">Guardar imagem (PNG)</a>
+            <iframe id="mbThermalPreviewFrame" class="mb-thermal-preview-frame" title="Pré-visualização do talão em PDF"></iframe>
+            <a id="mbThermalDownloadLink" class="btn" download="weight-balance-80mm.pdf">Guardar PDF</a>
         </div>
 
-        <!-- Fonte dos dados usados para desenhar a imagem acima (js/mb-print-thermal.js
+        <!-- Fonte dos dados usados para construir o PDF acima (js/mb-print-thermal.js
              lê estes elementos). Fica sempre invisível ao utilizador — não é
-             ecrã de conferência, só a "matéria-prima" da imagem. -->
+             ecrã de conferência, só a "matéria-prima" do talão. -->
         <main class="mb-thermal-source" aria-hidden="true">
             <section id="mbPrintCapture" class="mb-thermal-capture">
                 <div id="mb-table">
@@ -139,6 +139,7 @@
         <script src="js/general.js"></script>
         <script src="js/dataLoader.js"></script>
         <script src="js/mb.js"></script>
+        <script src="js/vendor/jspdf.umd.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';"></script>
         <script src="js/mb-print-thermal.js"></script>
     </body>
 </html>
