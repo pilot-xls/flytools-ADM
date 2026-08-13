@@ -18,7 +18,7 @@
         <!-- Pré-visualização do PDF gerado automaticamente ao abrir a
              página — já pronto para o botão "Abrir PDF" acima. -->
         <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
-            <iframe id="mbThermalPreviewFrame" class="mb-thermal-preview-frame" title="Pré-visualização do talão em PDF"></iframe>
+            <canvas id="mbThermalPreviewCanvas" class="mb-thermal-preview-canvas" aria-label="Pré-visualização do talão em PDF"></canvas>
             <a id="mbThermalDownloadLink" class="btn" download="weight-balance-80mm.pdf">Guardar PDF</a>
         </div>
 
@@ -140,6 +140,7 @@
         <script src="js/dataLoader.js"></script>
         <script src="js/mb.js"></script>
         <script src="js/vendor/jspdf.umd.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';"></script>
+        <script src="js/vendor/pdf.min.js"></script>
         <script src="js/mb-print-thermal.js"></script>
     </body>
 </html>
