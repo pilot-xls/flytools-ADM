@@ -25,6 +25,10 @@ const FONT_NAME = "courier"; // fonte base do PDF (sempre disponível, sem preci
 let lastReciboPdfBlob = null;
 let lastReciboPdfUrl = null;
 
+if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await waitForPrintPageReady();
@@ -171,10 +175,9 @@ async function gerarReciboPDF({ silent = false } = {}) {
         lastReciboPdfUrl = URL.createObjectURL(blob);
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
-        const frame = document.getElementById("mbThermalPreviewFrame");
+        const canvas = document.getElementById("mbThermalPreviewCanvas");
         const downloadLink = document.getElementById("mbThermalDownloadLink");
 
-        if (frame) frame.src = lastReciboPdfUrl;
         if (downloadLink) downloadLink.href = lastReciboPdfUrl;
         if (wrap) {
             wrap.hidden = false;
@@ -182,22 +185,16 @@ async function gerarReciboPDF({ silent = false } = {}) {
                 wrap.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         }
-        // A caixa de pré-visualização tinha uma altura fixa no CSS, que não
-        // batia certo com a forma real do talão (estreito e muito comprido)
-        // — o visualizador de PDF encolhia a página inteira para caber,
-        // sobrando bastante espaço em branco à volta. Ajusta-se aqui a
-        // altura da caixa à proporção real da página gerada, para que o
-        // PDF preencha a pré-visualização tal como vai ficar quando
-        // partilhado/aberto.
-        if (frame) {
-            const larguraPagMm = doc.internal.pageSize.getWidth();
-            const alturaPagMm = doc.internal.pageSize.getHeight();
-            const larguraCaixaPx = frame.clientWidth;
-            if (larguraCaixaPx > 0) {
-                const alturaProporcional = larguraCaixaPx * (alturaPagMm / larguraPagMm);
-                const alturaMaxima = window.innerHeight * 0.85;
-                frame.style.height = Math.min(alturaProporcional, alturaMaxima) + "px";
-            }
+        // Em vez de meter o PDF num <iframe> e confiar no visualizador
+        // nativo do browser/SO para o encolher e encher a caixa (o
+        // comportamento varia entre motores — no Safari/iOS sobrava
+        // espaço em branco por baixo do talão), desenha-se aqui a
+        // própria página 1 do PDF num <canvas> com o pdf.js. Um canvas
+        // dimensiona-se como qualquer imagem (width:100%; height:auto),
+        // por isso a pré-visualização fica sempre com a proporção real
+        // do talão, em qualquer browser.
+        if (canvas) {
+            await desenharPreviaPDF(blob, canvas);
         }
     } catch (error) {
         console.error("Erro ao gerar o PDF do talão:", error);
@@ -225,6 +222,31 @@ async function partilharReciboPDF() {
         if (error?.name !== "AbortError") {
             console.error("Erro ao partilhar o PDF:", error);
         }
+    }
+}
+
+// Renderiza a página 1 do PDF gerado para o <canvas> de pré-visualização
+// usando o pdf.js — ver nota em gerarReciboPDF() sobre porquê (evitar o
+// visualizador de PDF nativo do browser/SO, que se comporta de forma
+// inconsistente dentro de um <iframe>).
+async function desenharPreviaPDF(blob, canvas) {
+    if (!window.pdfjsLib) return;
+    try {
+        const bytes = await blob.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+        const page = await pdf.getPage(1);
+        const dpr = window.devicePixelRatio || 1;
+        const escala = (2 * dpr); // resolução extra para ficar nítido em ecrãs retina
+        const viewport = page.getViewport({ scale: escala });
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        const ctx = canvas.getContext("2d");
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        canvas.dataset.rendered = "true";
+    } catch (error) {
+        console.error("Erro ao desenhar a pré-visualização do PDF:", error);
     }
 }
 
