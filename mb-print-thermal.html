@@ -9,27 +9,19 @@
         <link href="css/mb-print-thermal.css" rel="stylesheet">
     </head>
     <body class="mb-thermal-body">
-        <div class="mb-thermal-toolbar">
-            <button id="btnPrintThermalImage" type="button" class="btn">Abrir PDF</button>
-            <button id="btnShareThermalImage" type="button" class="btn" hidden>Partilhar PDF</button>
-            <button id="btnClosePrint" type="button" class="btn btn-secondary">Fechar</button>
+        <!-- Só dois botões: partilhar/imprimir (mesma função que o botão 📤
+             já usa em mb.html — abre o diálogo nativo de impressão do iOS,
+             que dá para Guardar como PDF ou imprimir via AirPrint) e sair. -->
+        <div class="mb-thermal-toolbar no-print">
+            <button id="btnPrintThermalShare" type="button" class="mb-thermal-icon-btn" aria-label="Partilhar / Imprimir">📤</button>
+            <button id="btnClosePrint" type="button" class="mb-thermal-icon-btn mb-thermal-icon-btn-secondary" aria-label="Sair">✕</button>
         </div>
 
-        <!-- Pré-visualização do PDF gerado automaticamente ao abrir a
-             página — já pronto para o botão "Abrir PDF" acima. -->
-        <div id="mbThermalPreviewWrap" class="mb-thermal-preview-wrap" hidden>
-            <canvas id="mbThermalPreviewCanvas" class="mb-thermal-preview-canvas" aria-label="Pré-visualização do talão em PDF"></canvas>
-            <a id="mbThermalDownloadLink" class="btn" download="weight-balance-80mm.pdf">Guardar PDF</a>
-        </div>
-
-        <!-- Fonte dos dados usados para construir o PDF acima (js/mb-print-thermal.js
-             lê estes elementos). Fica sempre invisível ao utilizador — não é
-             ecrã de conferência, só a "matéria-prima" do talão. -->
-        <main class="mb-thermal-source" aria-hidden="true">
+        <main class="mb-thermal-page">
             <section id="mbPrintCapture" class="mb-thermal-capture">
                 <div id="mb-table">
                     <div id="heading">
-                        <img id="thermalLogo" src="img/sevenair.png" loading="eager" alt="Sevenair logo" class="mb-thermal-logo">
+                        <img src="img/sevenair.png" loading="eager" alt="Sevenair logo" class="mb-thermal-logo">
                         <h2>Weight &amp; Balance</h2>
                         <p id="ac-selected"></p>
                         <p id="nomeLeg"></p>
@@ -134,13 +126,14 @@
                     <svg id="cg-svg" viewBox="0 0 400 300"></svg>
                 </div>
             </section>
+            <div class="mb-thermal-footer">
+                <img src="img/sevenair.png" loading="eager" alt="Sevenair logo">
+            </div>
         </main>
 
         <script src="js/general.js"></script>
         <script src="js/dataLoader.js"></script>
         <script src="js/mb.js"></script>
-        <script src="js/vendor/jspdf.umd.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';"></script>
-        <script src="js/vendor/pdf.min.js"></script>
         <script src="js/mb-print-thermal.js"></script>
     </body>
 </html>
