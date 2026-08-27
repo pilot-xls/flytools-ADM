@@ -5,7 +5,7 @@ const { man, woman, child } = getPayloadDefaults();
 const template = document.getElementById("popup-TLoad-Template");
 const dialog = template.content.querySelector("dialog").cloneNode(true);
 // Adicionar o popup ao body
-document.body.appendChild(dialog);
+(window.__spaActiveContainer || document.body).appendChild(dialog);
 // Guardar referência global para poder fechar depois
 window.popupTLoad = dialog;
 
