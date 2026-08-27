@@ -1,6 +1,6 @@
 // Nome da cache actual da aplicação.
 // Sempre que mudares ficheiros importantes, incrementa esta versão.
-const CACHE_NAME = 'd228-cache-v1.5.8';
+const CACHE_NAME = 'd228-cache-v1.5.9';
 
 // Página principal usada como fallback quando uma navegação falha.
 const APP_SHELL_FALLBACK = './index.html';
@@ -17,16 +17,20 @@ const ASSETS = [
 
   './Popup-TrafficLoad.html',
   './calculadora.html',
+  './fdr.html',
+  './mb-print-thermal.html',
   './mb.html',
   './performance.html',
   './popup-fuel.html',
   './rotas.html',
   './settings.html',
 
+  './footer.html',
   './header.html',
 
   './css/calculadora.css',
   './css/index.css',
+  './css/mb-print-thermal.css',
   './css/mb.css',
   './css/menu.css',
   './css/normalize.css',
@@ -51,6 +55,7 @@ const ASSETS = [
   './js/asdrFlaps1_CSATH.js',
   './js/asdrFlapsUP_CSATH.js',
   './js/calculadora.js',
+  './js/cat-printer-protocol.js',
   './js/cg2segFlaps1_CSATH.js',
   './js/cg2segFlapsUp_CSATH.js',
   './js/cg3segFlaps1_CSATH.js',
@@ -61,6 +66,8 @@ const ASSETS = [
   './js/dataLoader.js',
   './js/general.js',
   './js/index.js',
+  './js/mb-print-thermal.js',
+  './js/mb-thermal-launcher.js',
   './js/mb.js',
   './js/mtowASDA_Flaps1.js',
   './js/mtowASDA_FlapsUp.js',
@@ -79,6 +86,10 @@ const ASSETS = [
   './js/torqueTakeoff_CSATH.js',
   './js/torrFlaps1_CSATH.js',
   './js/torrFlapsUP_CSATH.js',
+
+  './js/vendor/jspdf.umd.min.js',
+  './js/vendor/pdf.min.js',
+  './js/vendor/pdf.worker.min.js',
 
   './img/Layout_Cargo.webp',
   './img/NOTAM.png',
