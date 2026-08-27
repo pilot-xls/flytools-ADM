@@ -7,7 +7,7 @@
 // afetado.
 // =====================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+function initMbThermalLauncher() {
     const btn = document.getElementById("btnMbPrintThermal");
     if (!btn) return;
 
@@ -29,4 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Não foi possível abrir a impressão térmica.");
         }
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMbThermalLauncher);
+} else {
+    initMbThermalLauncher();
+}
