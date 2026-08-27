@@ -108,30 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 5. Executa cálculo inicial ---
     exec_calculo();
-    initMbPrintButton();
 });
-
-function initMbPrintButton() {
-    const btn = document.getElementById("btnMbPrint");
-    if (!btn) return;
-
-    btn.addEventListener("click", async () => {
-        try {
-            await exec_calculo();
-            localStorage.setItem("mbPrintRequestedAt", String(Date.now()));
-
-            const printUrl = new URL("mb-print.html", window.location.href).toString();
-            const newWindow = window.open(printUrl, "_blank", "noopener,noreferrer");
-
-            if (!newWindow) {
-                window.location.href = printUrl;
-            }
-        } catch (error) {
-            console.error("Erro ao abrir a página de impressão:", error);
-            alert("Não foi possível abrir a página de impressão.");
-        }
-    });
-}
 
 // =====================================================
 // Função de formatação numérica
