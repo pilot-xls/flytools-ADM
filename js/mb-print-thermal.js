@@ -41,16 +41,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Erro ao preparar os dados:", error);
     }
 
-    const btnPrintThermalImage = document.getElementById("btnPrintThermalImage");
-    if (btnPrintThermalImage) {
-        btnPrintThermalImage.addEventListener("click", async () => {
-            await gerarReciboPDF({ silent: true });
-            if (lastReciboPdfUrl) {
-                window.open(lastReciboPdfUrl, "_blank");
-            }
-        });
-    }
-
     const btnShareThermalImage = document.getElementById("btnShareThermalImage");
     if (btnShareThermalImage && navigator.share) {
         btnShareThermalImage.hidden = false;
@@ -176,9 +166,7 @@ async function gerarReciboPDF({ silent = false } = {}) {
 
         const wrap = document.getElementById("mbThermalPreviewWrap");
         const canvas = document.getElementById("mbThermalPreviewCanvas");
-        const downloadLink = document.getElementById("mbThermalDownloadLink");
 
-        if (downloadLink) downloadLink.href = lastReciboPdfUrl;
         if (wrap) {
             wrap.hidden = false;
             if (!silent) {
@@ -212,7 +200,7 @@ async function partilharReciboPDF() {
     const file = new File([lastReciboPdfBlob], "weight-balance-80mm.pdf", { type: "application/pdf" });
 
     if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
-        alert("Este browser não suporta partilhar este PDF diretamente — usa \"Guardar PDF\" e partilha esse ficheiro manualmente.");
+        alert("Este browser não suporta partilhar este PDF diretamente.");
         return;
     }
 
