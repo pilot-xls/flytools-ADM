@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initCalculadora() {
     const totalDisplay = document.getElementById('totalDisplay');
     const timeDisplay = document.getElementById('timeDisplay');
     const timeKeypad = document.getElementById('timeKeypad');
@@ -161,7 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimeDisplay();
     renderHistory();
     renderTotal();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCalculadora);
+} else {
+    initCalculadora();
+}
 
 function lbToKg() {
     const lb = parseFloat(document.getElementById('lb').value) || 0;

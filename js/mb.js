@@ -4,7 +4,7 @@
 
 let usarMomentoImportado = true;
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initMb() {
     const { aircraftData, defaultId } = await ensureSettingsData();
 
     // --- 1. Preenche dados do avião default ---
@@ -108,7 +108,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- 5. Executa cálculo inicial ---
     exec_calculo();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMb);
+} else {
+    initMb();
+}
 
 // =====================================================
 // Função de formatação numérica
