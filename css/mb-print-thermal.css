@@ -46,6 +46,18 @@ body.mb-thermal-body {
     flex-shrink: 0;
 }
 
+.mb-thermal-toolbar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.mb-thermal-btn-label {
+    font-size: 10px;
+    color: #666;
+}
+
 /* --- Pré-visualização do PDF gerado --- */
 .mb-thermal-preview-wrap {
     max-width: 480px;

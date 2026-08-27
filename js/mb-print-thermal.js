@@ -43,7 +43,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const btnShareThermalImage = document.getElementById("btnShareThermalImage");
     if (btnShareThermalImage && navigator.share) {
-        btnShareThermalImage.hidden = false;
+        const btnShareThermalImageWrap = document.getElementById("btnShareThermalImageWrap");
+        if (btnShareThermalImageWrap) {
+            btnShareThermalImageWrap.hidden = false;
+        }
         btnShareThermalImage.addEventListener("click", async () => {
             await gerarReciboPDF({ silent: true });
             await partilharReciboPDF();
