@@ -30,6 +30,22 @@ body.mb-thermal-body {
     background: #5b6570;
 }
 
+.mb-thermal-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    line-height: 0;
+}
+
+.mb-thermal-icon-btn svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
 /* --- Pré-visualização do PDF gerado --- */
 .mb-thermal-preview-wrap {
     max-width: 480px;
