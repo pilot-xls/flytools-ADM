@@ -463,9 +463,9 @@ body.legs-metrics-hidden .leg-strip-metric {
 /* Perf / M&B inside the strip, far right */
 .leg-strip-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: .26rem;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
 }
 
