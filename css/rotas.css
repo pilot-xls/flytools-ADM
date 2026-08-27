@@ -62,8 +62,11 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     border-radius: var(--r-xl);
     background: var(--panel-dark);
     box-shadow: var(--shadow-xl);
-    position: relative;
+    position: sticky;
+    top: 96px; /* fica abaixo da navbar fixa (75px) com folga para o efeito de scroll */
+    z-index: 40;
     overflow: hidden;
+    will-change: transform;
 }
 
 /* Left orange stripe */

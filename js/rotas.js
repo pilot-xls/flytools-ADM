@@ -1703,6 +1703,54 @@ window.reporRotasParaOrigem = async function reporRotasParaOrigem() {
 
 
 // -------------------------------------------------------
+// 9.1 EFEITO "FLUTUANTE SOLTO" NA TOOLBAR AO FAZER SCROLL
+// A toolbar acompanha o scroll (sticky), mas fica ligeiramente
+// "atrasada" em relação ao movimento e assenta com uma pequena
+// mola no fim, para não parecer rigidamente colada ao topo.
+// -------------------------------------------------------
+(function initToolbarFloatEffect() {
+    const toolbar = document.querySelector(".toolbar-rotas");
+    if (!toolbar) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const MAX_OFFSET = 16; // px — deslocamento máximo permitido
+    const DRAG = 0.6;      // quanto o scroll "puxa" a toolbar
+    const DECAY = 0.82;    // amortecimento da velocidade
+    const EASE = 0.16;     // velocidade a que o offset persegue/assenta
+
+    let lastY = window.scrollY;
+    let velocity = 0;
+    let offset = 0;
+    let rafId = null;
+
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+    function tick() {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        lastY = y;
+
+        velocity = velocity * DECAY + delta * DRAG;
+        offset = clamp(offset + (velocity - offset) * EASE, -MAX_OFFSET, MAX_OFFSET);
+
+        toolbar.style.transform = offset ? `translateY(${offset.toFixed(2)}px)` : "";
+
+        if (Math.abs(velocity) > 0.05 || Math.abs(offset) > 0.05) {
+            rafId = requestAnimationFrame(tick);
+        } else {
+            toolbar.style.transform = "";
+            velocity = 0;
+            offset = 0;
+            rafId = null;
+        }
+    }
+
+    window.addEventListener("scroll", () => {
+        if (!rafId) rafId = requestAnimationFrame(tick);
+    }, { passive: true });
+})();
+
+// -------------------------------------------------------
 // 10. limpar traffic load quando press "C" button
 // -------------------------------------------------------
 function createEmptyTrafficLoad() {
