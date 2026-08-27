@@ -86,30 +86,6 @@ body {
     align-items: center;
 }
 
-/* --- DESKTOP --- */
-@media (min-width: 1224px) {
-    .navbar .menu {
-        display: flex !important;
-
-        /* visível sempre em desktop */
-        position: static;
-
-        /* volta ao fluxo normal */
-        flex-direction: row;
-        background: transparent;
-        box-shadow: none;
-        padding: 0;
-        gap: 15px;
-        width: auto;
-    }
-
-    .hamburger {
-        display: none !important;
-
-        /* esconde botão em desktop */
-    }
-}
-
 /* Ajustes gerais */
 .menu a {
     font-size: 20px;
