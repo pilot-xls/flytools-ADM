@@ -1713,10 +1713,11 @@ window.reporRotasParaOrigem = async function reporRotasParaOrigem() {
     if (!toolbar) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const MAX_OFFSET = 16; // px — deslocamento máximo permitido
-    const DRAG = 0.6;      // quanto o scroll "puxa" a toolbar
-    const DECAY = 0.82;    // amortecimento da velocidade
-    const EASE = 0.16;     // velocidade a que o offset persegue/assenta
+    const MAX_OFFSET_UP = 16;   // px — pode "atrasar-se" para cima sem risco (afasta-se do conteúdo)
+    const MAX_OFFSET_DOWN = 6;  // px — para baixo tem de ficar bem abaixo da margem da toolbar, para não sobrepor o primeiro cartão
+    const DRAG = 0.6;           // quanto o scroll "puxa" a toolbar
+    const DECAY = 0.82;         // amortecimento da velocidade
+    const EASE = 0.16;          // velocidade a que o offset persegue/assenta
 
     let lastY = window.scrollY;
     let velocity = 0;
@@ -1727,11 +1728,23 @@ window.reporRotasParaOrigem = async function reporRotasParaOrigem() {
 
     function tick() {
         const y = window.scrollY;
+
+        // No topo da página (incluindo o "rubber-band" do iOS, que pode dar valores negativos),
+        // não deixar qualquer deslocamento residual empurrar a toolbar para cima do primeiro cartão.
+        if (y <= 0) {
+            toolbar.style.transform = "";
+            velocity = 0;
+            offset = 0;
+            lastY = y;
+            rafId = null;
+            return;
+        }
+
         const delta = y - lastY;
         lastY = y;
 
         velocity = velocity * DECAY + delta * DRAG;
-        offset = clamp(offset + (velocity - offset) * EASE, -MAX_OFFSET, MAX_OFFSET);
+        offset = clamp(offset + (velocity - offset) * EASE, -MAX_OFFSET_UP, MAX_OFFSET_DOWN);
 
         toolbar.style.transform = offset ? `translateY(${offset.toFixed(2)}px)` : "";
 
