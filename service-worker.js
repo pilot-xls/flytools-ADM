@@ -1,6 +1,6 @@
 // Nome da cache actual da aplicação.
 // Sempre que mudares ficheiros importantes, incrementa esta versão.
-const CACHE_NAME = 'd228-cache-v1.5.4';
+const CACHE_NAME = 'd228-cache-v1.5.5';
 
 // Página principal usada como fallback quando uma navegação falha.
 const APP_SHELL_FALLBACK = './index.html';
@@ -17,7 +17,6 @@ const ASSETS = [
 
   './Popup-TrafficLoad.html',
   './calculadora.html',
-  './mb-print.html',
   './mb.html',
   './performance.html',
   './popup-fuel.html',
@@ -28,7 +27,6 @@ const ASSETS = [
 
   './css/calculadora.css',
   './css/index.css',
-  './css/mb-print.css',
   './css/mb.css',
   './css/menu.css',
   './css/normalize.css',
@@ -63,7 +61,6 @@ const ASSETS = [
   './js/dataLoader.js',
   './js/general.js',
   './js/index.js',
-  './js/mb-print.js',
   './js/mb.js',
   './js/mtowASDA_Flaps1.js',
   './js/mtowASDA_FlapsUp.js',
