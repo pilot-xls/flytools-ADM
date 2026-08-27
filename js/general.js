@@ -243,9 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="img/calculator.png" alt="Calculadora" class="footer-nav__icon">
         <span class="footer-nav__label">Calculator</span>
     </a>
-    <a href="rotas.html" class="footer-nav__item">
-        <img src="img/waypoint.png" alt="Rotas" class="footer-nav__icon">
-        <span class="footer-nav__label">Routes</span>
+    <a href="mb.html" class="footer-nav__item">
+        <img src="img/balance.png" alt="Weight &amp; Balance" class="footer-nav__icon">
+        <span class="footer-nav__label">W&amp;B</span>
     </a>
     <a href="index.html" class="footer-nav__item footer-nav__item--home">
         <span class="footer-nav__home-bubble">
@@ -254,9 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
         </span>
     </a>
-    <a href="mb.html" class="footer-nav__item">
-        <img src="img/balance.png" alt="Weight &amp; Balance" class="footer-nav__icon">
-        <span class="footer-nav__label">W&amp;B</span>
+    <a href="rotas.html" class="footer-nav__item">
+        <img src="img/waypoint.png" alt="Rotas" class="footer-nav__icon">
+        <span class="footer-nav__label">Routes</span>
     </a>
     <a href="https://chat.whatsapp.com/FIYPIW9mRn42HTzPFxXhOX?mode=hqctswi" target="_blank" rel="noopener noreferrer" class="footer-nav__item footer-nav__item--whatsapp">
         <span class="footer-nav__wa-bubble">
