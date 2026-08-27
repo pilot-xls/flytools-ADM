@@ -10,6 +10,7 @@
 
 const ROTAS_USER_KEY = "rotasUserV1";      // estado de trabalho do utilizador
 const AIRCRAFT_ACTIVE_KEY = "aircraftActive";   // avião ativo definido em settings.html
+const LEG_METRICS_HIDDEN_KEY = "legMetricsHiddenV1"; // preferência: ocultar métricas (TRAF/TOW/FOB/TRIP F/LW) nas legs
 
 // Limites genéricos (podem ser usados se quiseres acrescentar validações globais)
 const LIMITS = {
@@ -1659,6 +1660,27 @@ window.reporRotasParaOrigem = async function reporRotasParaOrigem() {
     }
 
     attachEvents(container, estado, aircraft);
+
+    // Botão: mostrar/ocultar métricas das legs (TRAF, TOW, FOB, TRIP F, LW)
+    const btnToggleMetrics = document.getElementById("btn-toggle-leg-metrics");
+    if (btnToggleMetrics) {
+        const applyMetricsVisibility = (hidden) => {
+            document.body.classList.toggle("legs-metrics-hidden", hidden);
+            btnToggleMetrics.setAttribute("aria-pressed", String(hidden));
+            const label = hidden ? "Mostrar métricas das legs" : "Ocultar métricas das legs";
+            btnToggleMetrics.title = label;
+            btnToggleMetrics.setAttribute("aria-label", label);
+        };
+
+        applyMetricsVisibility(lsGet(LEG_METRICS_HIDDEN_KEY, false) === true);
+
+        btnToggleMetrics.addEventListener("click", () => {
+            const hidden = document.body.classList.contains("legs-metrics-hidden");
+            const next = !hidden;
+            lsSet(LEG_METRICS_HIDDEN_KEY, next);
+            applyMetricsVisibility(next);
+        });
+    }
 
     // Botão "+ Nova Rota"
     const btnNova = document.getElementById("btn-nova-rota");
