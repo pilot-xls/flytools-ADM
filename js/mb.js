@@ -544,7 +544,7 @@ function desenharPontos(resultados) {
         </div>
       </form>
     </dialog>`;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    (window.__spaActiveContainer || document.body).insertAdjacentHTML('beforeend', modalHtml);
 
     const modal = document.getElementById('popupKg');
     const $valor = document.getElementById('valorKg');

@@ -497,7 +497,7 @@ function ensureLegEditorDialog() {
                 <div class="leg-editor-actions"></div>
             </div>
         </form>`;
-    document.body.appendChild(dialog);
+    (window.__spaActiveContainer || document.body).appendChild(dialog);
 
     const _onClose = () => { libertarScroll(); disablePopupZoomBlock(); };
     dialog.addEventListener("close", _onClose);
@@ -1601,7 +1601,11 @@ window.reporRotasParaOrigem = async function reporRotasParaOrigem() {
 
     if (!isRotas) return;
 
-    const container = document.body;
+    // Usa o contentor da própria página (definido pelo spa-router) em vez de
+    // document.body diretamente: assim os cartões de rota ficam escondidos
+    // junto com o resto da página ao navegar para outra secção, em vez de
+    // ficarem "presos" no body e visíveis por cima de outras páginas.
+    const container = window.__spaActiveContainer || document.body;
 
     const [estado, aircraft] = await Promise.all([
         ensureUserRotasState(),

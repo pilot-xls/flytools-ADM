@@ -18,6 +18,16 @@
     const loadedScripts = new Set();
     let currentPage = currentFileName();
 
+    // Algumas páginas inserem modais/elementos diretamente em document.body
+    // (em vez de dentro do seu próprio contentor). Como o body passa a poder
+    // ter o conteúdo de várias páginas ao mesmo tempo (escondido/mostrado),
+    // esses scripts têm de usar window.__spaActiveContainer em vez de
+    // document.body diretamente, para ficarem escondidos/mostrados como
+    // parte da página a que pertencem. Isto corre já aqui (síncrono, antes
+    // de qualquer script da própria página), para valer também na página
+    // carregada diretamente (não só nas construídas por SPA em buildView).
+    window.__spaActiveContainer = document.getElementById('spa-view') || null;
+
     function currentFileName() {
         return location.pathname.split('/').pop() || 'index.html';
     }
@@ -53,7 +63,8 @@
             const target = currentFileName();
             if (target === currentPage) return;
             if (views[target]) {
-                showView(target, false);
+                document.title = views[target].title || document.title;
+                applyView(target);
             } else if (SPA_PAGES.indexOf(target) !== -1) {
                 // Nunca visitada nesta sessão (ex.: recuou para lá de outra forma) — recarrega normalmente.
                 location.reload();
@@ -83,10 +94,20 @@
 
     async function navigateTo(target) {
         try {
+            // Atualiza o URL ANTES de correr os scripts da página de destino: o
+            // rotas.js, por exemplo, só inicializa se location.pathname já
+            // apontar para rotas.html — se só mudássemos o URL depois (como
+            // acontecia antes), essa verificação falhava e a página ficava
+            // com os dados por preencher.
+            history.pushState({ page: target }, '', target);
+
             if (!views[target]) {
                 await buildView(target);
+            } else {
+                document.title = views[target].title || document.title;
             }
-            showView(target, true);
+
+            applyView(target);
         } catch (err) {
             console.warn('[spa-router] falha na navegação rápida, a recarregar normalmente:', err);
             location.href = target;
@@ -102,6 +123,9 @@
 
         const remoteView = doc.getElementById('spa-view');
         if (!remoteView) throw new Error('spa-view não encontrado em ' + target);
+
+        // Também aqui, antes de correr os scripts da página (ver comentário em navigateTo).
+        document.title = doc.title;
 
         // Para cada folha de estilo específica da página, registamos também se vem antes
         // ou depois de menu.css no <head> de origem: isso importa porque, em caso de empate
@@ -132,6 +156,12 @@
 
         const anchor = document.getElementById('spa-view');
         anchor.insertAdjacentElement('afterend', container);
+
+        // A partir daqui, qualquer modal/elemento que os scripts desta página
+        // insiram em "document.body" (em vez do seu próprio contentor) deve
+        // usar window.__spaActiveContainer, para ficar dentro da vista e ser
+        // escondido/mostrado junto com o resto da página.
+        window.__spaActiveContainer = container;
 
         const scriptEls = Array.prototype.filter.call(
             doc.querySelectorAll('script[src]'),
@@ -247,7 +277,7 @@
         });
     }
 
-    function showView(target, pushHistory) {
+    function applyView(target) {
         const entry = views[target];
         if (!entry) return;
 
@@ -258,13 +288,7 @@
 
         updatePageCss(target);
         entry.el.hidden = false;
-
         currentPage = target;
-        document.title = entry.title || document.title;
-
-        if (pushHistory) {
-            history.pushState({ page: target }, '', target);
-        }
 
         updateFooterActive(target);
         window.scrollTo(0, 0);
