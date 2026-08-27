@@ -892,7 +892,7 @@ body.legs-metrics-hidden .leg-strip-metric {
     .leg-strip-actions {
         grid-column: 4;
         grid-row: 1;
-        flex-direction: column;
+        flex-direction: row;
         justify-content: center;
         gap: .2rem;
     }
