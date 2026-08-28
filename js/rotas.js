@@ -861,7 +861,7 @@ function attachEvents(container, estado, aircraft) {
             leg.trafficLoad = {
                 ...(leg.trafficLoad || createEmptyTrafficLoad()),
                 total,
-                moment: Number(leg.trafficLoad?.moment || 0)
+                moment: 0
             };
         }
 
