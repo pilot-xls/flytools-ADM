@@ -412,6 +412,7 @@ function buildLegSummary(leg) {
     const MTOW = aircraft ? toNum(aircraft.MTOW) : 0;
     const MLW  = aircraft ? toNum(aircraft.MLW || aircraft.MLOW) : 0;
     const fuelOBNum = toNum(leg?.fuelOB) || 0;
+    const towNum = Number(String(leg?.tow ?? "").replace(/[^\d.]/g, "")) || 0;
 
     // Parse "Max: 850 kg" → "850 kg"  |  "Max: 1800 lb (816 kg)" → "1800 lb"
     const parseKg = (s) => { const m = String(s || "").match(/(\d+)\s*kg/); return m ? `${m[1]} kg` : "—"; };
@@ -423,6 +424,7 @@ function buildLegSummary(leg) {
         maxTraffic:   parseKg(leg?.maxPayloadInfo),
         tow:          leg?.tow || "0 kg",
         maxTow:       MTOW > 0 ? `${Math.round(MTOW)} kg` : "—",
+        towPct:       MTOW > 0 ? Math.min(100, Math.max(0, Math.round((towNum / MTOW) * 100))) : 0,
         fuelOnBoard:  fuelOBNum > 0 ? `${fuelOBNum} lb` : "0 lb",
         maxFuel:      parseLb(leg?.maxFuelInfo),
         tripFuel:     leg?.tripFuel ? `${leg.tripFuel} lb` : "0 lb",
@@ -578,6 +580,7 @@ function criarLegHTML(leg, legIndex = 0) {
             <span class="leg-strip-metric leg-strip-tow">
                 <small>TOW</small>
                 <strong class="leg-summary-tow">${summary.tow}</strong>
+                <span class="leg-tow-gauge"><span class="leg-tow-gauge-fill" style="width:${summary.towPct}%"></span></span>
                 <em class="leg-summary-tow-max">max ${summary.maxTow}</em>
             </span>
             <span class="leg-strip-metric leg-strip-fob">
@@ -641,6 +644,8 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
         setText(".leg-summary-traffic-max", `max ${summary.maxTraffic}`);
         setText(".leg-summary-tow", summary.tow);
         setText(".leg-summary-tow-max", `max ${summary.maxTow}`);
+        const towGaugeFill = el.querySelector(".leg-tow-gauge-fill");
+        if (towGaugeFill) towGaugeFill.style.width = `${summary.towPct}%`;
         setText(".leg-summary-fob", summary.fuelOnBoard);
         setText(".leg-summary-fuel-max", `max ${summary.maxFuel}`);
         setText(".leg-summary-tripf", summary.tripFuel);
