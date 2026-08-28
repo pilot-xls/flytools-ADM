@@ -280,10 +280,6 @@ function computeLegDerived(leg, prevLeg, aircraft) {
     const landingFuelLb = Math.max(fuelOBLb - tripFuelLb, 0);
     leg.landingFuelLb = landingFuelLb;
 
-    if (prevLeg && typeof prevLeg === "object") {
-        prevLeg.nextSuggestedFuel = `${Math.round(prevLeg.landingFuelLb)} lb`;
-    }
-
     // --------------------
     // Cálculo de máximos de fuel
     // --------------------
