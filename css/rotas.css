@@ -206,9 +206,8 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     color: #fff;
 }
 
-/* Estado: métricas das legs ocultas — o TOW + gauge fica sempre visível
-   como âncora da leg, só as métricas secundárias colapsam. */
-body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
+/* Estado: métricas das legs ocultas */
+body.legs-metrics-hidden .leg-strip-metric {
     display: none;
 }
 
@@ -390,27 +389,20 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     border-left-color: var(--danger);
 }
 
-/* Leg number badge — doubles as a "rail" node so the eye can follow
-   the sequence of legs without relying on reading the number itself. */
+/* Leg number badge */
 .leg-strip-number {
     display: grid;
     place-items: center;
     width: 30px;
     height: 30px;
-    border-radius: 50%;
-    color: var(--success);
-    background: rgba(22,163,74,.10);
-    border: 2px solid var(--success);
+    border-radius: 8px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-mid);
     font-size: .68rem;
     font-weight: 900;
     font-family: var(--font-num);
     flex-shrink: 0;
-}
-
-.rota-leg.is-alert .leg-strip-number {
-    color: var(--danger);
-    background: rgba(224,53,53,.10);
-    border-color: var(--danger);
 }
 
 .leg-strip-name {
@@ -474,29 +466,6 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 /* Green accent for loaded values */
 .leg-strip-fob strong,
 .leg-strip-traffic strong { color: #065f46; }
-
-/* TOW proximity gauge — reads the limit at a glance, no math required.
-   Stays visible even with body.legs-metrics-hidden (see below), so it's
-   the one number that always anchors a leg regardless of screen size. */
-.leg-tow-gauge {
-    display: block;
-    height: 4px;
-    margin: .2rem 0 .08rem;
-    border-radius: 99px;
-    background: rgba(26,32,53,.09);
-    overflow: hidden;
-}
-
-.leg-tow-gauge-fill {
-    display: block;
-    height: 100%;
-    width: 0%;
-    border-radius: 99px;
-    background: var(--success);
-    transition: width .25s ease;
-}
-
-.rota-leg.is-alert .leg-tow-gauge-fill { background: var(--danger); }
 
 /* Perf / M&B inside the strip, far right */
 .leg-strip-actions {
@@ -789,7 +758,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     align-items: center;
     gap: .3rem;
     color: var(--muted);
-    opacity: .65;
+    opacity: .4;
 }
 
 .leg-connector-line {
