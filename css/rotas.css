@@ -17,8 +17,11 @@
     --accent-soft:  rgba(220,50,50,.10);
     --accent-mid:   rgba(220,50,50,.28);
     --success:      #16a34a;
+    --success-bright: #34d399;
     --danger:       #e03535;
+    --danger-bright: #ff6b6b;
     --warning:      #d97706;
+    --line-on-dark: rgba(232,236,245,.14);
     --shadow-xl:    0 16px 48px rgba(10,15,30,.22);
     --shadow:       0 6px 20px rgba(26,32,53,.09);
     --shadow-soft:  0 3px 10px rgba(26,32,53,.06);
@@ -219,42 +222,66 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     width: min(960px, calc(100% - 24px));
     margin: 0 auto .75rem;
     border-radius: var(--r-xl);
-    background: var(--panel);
-    box-shadow: var(--shadow-soft);
-    border: 1px solid var(--line);
+    background: var(--panel-dark);
+    box-shadow: var(--shadow-xl);
     overflow: hidden;
 }
 
 .rota-header {
+    position: relative;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: .7rem;
-    padding: .7rem .85rem;
-    background: #f4f7fc;
-    border-bottom: 1px solid var(--line);
+    padding: .8rem .9rem;
+    overflow: hidden;
+}
+
+/* Left red stripe + faint cockpit grid — same language as the toolbar. */
+.rota-header::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+}
+
+.rota-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0, transparent 60px,
+        rgba(255,255,255,.018) 60px, rgba(255,255,255,.018) 61px
+    );
+    pointer-events: none;
 }
 
 .rota-header-icon {
+    position: relative;
+    z-index: 1;
     width: 34px;
     height: 34px;
     display: grid;
     place-items: center;
     border-radius: 9px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    border: 1px solid var(--accent-mid);
+    background: rgba(220,50,50,.16);
+    color: #fff;
+    border: 1px solid rgba(220,50,50,.4);
     flex-shrink: 0;
 }
 
 .rota-header .nome-rota {
+    position: relative;
+    z-index: 1;
     width: 100%;
     min-height: 38px;
     border: 1px solid transparent;
     border-radius: var(--r-md);
     outline: none;
     padding: 0 .6rem;
-    color: var(--ink);
+    color: var(--ink-on-dark);
     background: transparent;
     font-size: clamp(.95rem, 4vw, 1.22rem);
     font-weight: 900;
@@ -264,21 +291,23 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .rota-header .nome-rota:focus {
-    border-color: var(--accent-mid);
-    background: #fff;
-    box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: rgba(220,50,50,.5);
+    background: rgba(255,255,255,.06);
+    box-shadow: 0 0 0 3px rgba(220,50,50,.18);
 }
 
 .rota-header .nome-rota::placeholder {
     font-weight: 400;
     letter-spacing: 0;
     font-family: inherit;
-    color: var(--muted);
-    opacity: .45;
+    color: var(--muted-dark);
+    opacity: .7;
     text-transform: none;
 }
 
 .rota-actions {
+    position: relative;
+    z-index: 1;
     display: flex;
     gap: .35rem;
     align-items: center;
@@ -286,7 +315,29 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 
 .rota-actions button,
 .btn-perf,
-.btn-mb,
+.btn-mb {
+    min-height: 30px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 999px;
+    padding: 0 .62rem;
+    color: var(--muted-dark);
+    background: rgba(255,255,255,.06);
+    font-size: .63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    transition: all .13s ease;
+}
+
+.rota-actions button:hover,
+.btn-perf:hover,
+.btn-mb:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255,255,255,.32);
+    color: #fff;
+    background: rgba(255,255,255,.14);
+}
+
 .leg-editor-actions button,
 .leg-editor-load-btn {
     min-height: 30px;
@@ -302,9 +353,6 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     transition: all .13s ease;
 }
 
-.rota-actions button:hover,
-.btn-perf:hover,
-.btn-mb:hover,
 .leg-editor-actions button:hover,
 .leg-editor-load-btn:hover {
     transform: translateY(-1px);
@@ -314,174 +362,168 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .btn-fcalc {
-    color: var(--accent-dark) !important;
-    border-color: var(--accent-mid) !important;
-    background: var(--accent-soft) !important;
+    color: #ffb3b3 !important;
+    border-color: rgba(220,50,50,.4) !important;
+    background: rgba(220,50,50,.14) !important;
 }
 
 .btn-clear-legs {
-    color: #7c3500 !important;
-    border-color: rgba(217,119,6,.28) !important;
-    background: rgba(217,119,6,.08) !important;
+    color: #ffcb8a !important;
+    border-color: rgba(217,119,6,.4) !important;
+    background: rgba(217,119,6,.14) !important;
 }
 
 .del-rota {
-    color: var(--danger) !important;
-    border-color: rgba(224,53,53,.22) !important;
-    background: rgba(224,53,53,.07) !important;
+    color: var(--danger-bright) !important;
+    border-color: rgba(255,107,107,.35) !important;
+    background: rgba(255,107,107,.12) !important;
 }
 
 .toggleBtn {
     min-width: 34px;
-    color: var(--muted) !important;
-    background: #edf0f6 !important;
-    border-color: var(--line) !important;
+    color: var(--muted-dark) !important;
+    background: rgba(255,255,255,.06) !important;
+    border-color: rgba(255,255,255,.16) !important;
 }
 
 /* ======================================================
-   LEGS – FLIGHT STRIPS
+   LEGS – FLIGHT RAIL
+   A single continuous line runs through every leg's numbered node,
+   so the sequence reads at a glance without leaning on color alone.
    ====================================================== */
+.rota-legs-rail {
+    position: relative;
+    padding: .3rem 1.1rem 1.3rem;
+}
+
+/* Quando a rota está fechada (todas as legs display:none), o
+   contentor do carril não deve ocupar espaço. */
+.rota-legs-rail:not(:has(.rota-leg:not([style*="display: none"]))) {
+    display: none;
+}
+
 .rota-leg {
-    margin: 0 .78rem .55rem;
-}
-
-.rota-header + .rota-leg {
-    margin-top: .65rem;
-}
-
-.rota-card > .rota-leg:last-child {
-    margin-bottom: .7rem;
-}
-
-.leg-flight-strip {
-    width: 100%;
-    min-height: 58px;
+    position: relative;
     display: grid;
-    grid-template-columns: 34px minmax(72px, 1.1fr) repeat(5, minmax(60px, 1fr)) auto;
-    gap: .38rem;
-    align-items: center;
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--success);
-    border-radius: var(--r-lg);
-    padding: .42rem .46rem;
-    color: var(--ink);
-    text-align: left;
-    background: #fdfeff;
-    cursor: pointer;
-    transition: all .14s ease;
-    -webkit-tap-highlight-color: transparent;
+    grid-template-columns: 44px 1fr;
+    column-gap: .85rem;
+    padding-top: 1.05rem;
 }
 
-.leg-flight-strip:hover {
-    border-color: var(--accent-mid);
-    border-left-color: var(--accent);
-    background: #fffcf8;
-    box-shadow: 0 5px 18px rgba(220,50,50,.10);
-    transform: translateY(-1px);
+.rota-leg:first-of-type {
+    padding-top: 0;
 }
 
-.rota-leg.is-alert .leg-flight-strip {
-    border-left-color: var(--danger);
-    background: rgba(255,247,247,.8);
+/* Segmento da linha do carril: liga o nó desta leg ao nó da leg
+   seguinte. Ancorado aos bordos da própria leg (top/bottom), por
+   isso mantém-se correto seja qual for a altura de cada leg
+   (colapsada ou expandida com "mais dados"). */
+.rota-leg:not(:last-of-type)::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 22px;
+    bottom: calc(-1.05rem - 22px);
+    left: 22px;
+    width: 2px;
+    background: var(--line-on-dark);
 }
 
-.rota-leg.is-alert .leg-flight-strip:hover {
-    border-color: rgba(224,53,53,.28);
-    border-left-color: var(--danger);
-}
-
-/* Leg number badge — doubles as a "rail" node so the eye can follow
+/* Rail node — doubles as the leg's status color, so the eye follows
    the sequence of legs without relying on reading the number itself. */
 .leg-strip-number {
+    position: relative;
+    z-index: 1;
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    color: var(--success);
-    background: rgba(22,163,74,.10);
-    border: 2px solid var(--success);
-    font-size: .68rem;
+    color: var(--success-bright);
+    background: var(--panel-dark);
+    border: 2px solid var(--success-bright);
+    font-size: .82rem;
     font-weight: 900;
     font-family: var(--font-num);
-    flex-shrink: 0;
 }
 
 .rota-leg.is-alert .leg-strip-number {
-    color: var(--danger);
-    background: rgba(224,53,53,.10);
-    border-color: var(--danger);
+    color: var(--danger-bright);
+    border-color: var(--danger-bright);
+}
+
+.leg-body {
+    min-width: 0;
+    padding-bottom: .2rem;
+}
+
+.leg-flight-strip {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: var(--r-md);
+    padding: .2rem .3rem;
+    margin: -.2rem -.3rem 0;
+    color: var(--ink-on-dark);
+    text-align: left;
+    background: transparent;
+    cursor: pointer;
+    transition: background .14s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.leg-flight-strip:hover,
+.leg-flight-strip:focus-visible {
+    background: rgba(255,255,255,.05);
+}
+
+.leg-route-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
 }
 
 .leg-strip-name {
-    color: var(--ink);
-    font-size: clamp(.85rem, 3vw, 1.04rem);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: #fff;
+    font-size: clamp(1rem, 3.4vw, 1.28rem);
     font-weight: 900;
     letter-spacing: .04em;
     text-transform: uppercase;
     overflow-wrap: anywhere;
     font-family: var(--font-num);
-    line-height: 1.1;
+    line-height: 1.15;
 }
 
-/* ── Metric cells ── */
-.leg-strip-metric {
-    min-height: 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: .02rem;
-    padding: .28rem .34rem;
-    border-radius: 7px;
-    background: #f5f7fc;
-    border: 1px solid rgba(26,32,53,.055);
+.leg-route-plane {
+    flex-shrink: 0;
+    color: var(--accent);
+    opacity: .85;
 }
 
-.leg-strip-metric small {
-    color: var(--muted);
-    font-size: .46rem;
+/* TOW — the leg's headline reading, always visible and full width. */
+.leg-strip-tow {
+    margin-top: .5rem;
+}
+
+.leg-strip-tow .leg-summary-tow {
+    color: #fff;
+    font-size: clamp(1.3rem, 5vw, 1.7rem);
     font-weight: 900;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    line-height: 1;
-    margin-bottom: .08rem;
-}
-
-.leg-strip-metric strong {
-    color: var(--ink);
-    font-size: .78rem;
-    line-height: 1.1;
     font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
+    line-height: 1;
 }
 
-/* "max XXX" small line under the value */
-.leg-strip-metric em {
-    display: block;
-    color: var(--muted);
-    font-size: .46rem;
-    font-style: normal;
-    font-weight: 700;
-    font-family: var(--font-num);
-    line-height: 1.1;
-    margin-top: .06rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    letter-spacing: .03em;
-}
-
-/* Green accent for loaded values */
-.leg-strip-fob strong,
-.leg-strip-traffic strong { color: #065f46; }
-
-/* TOW proximity gauge — reads the limit at a glance, no math required. */
 .leg-tow-gauge {
     display: block;
-    height: 4px;
-    margin: .2rem 0 .08rem;
+    height: 8px;
+    margin: .5rem 0 .4rem;
     border-radius: 99px;
-    background: rgba(26,32,53,.09);
+    background: rgba(255,255,255,.08);
     overflow: hidden;
 }
 
@@ -490,37 +532,160 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     height: 100%;
     width: 0%;
     border-radius: 99px;
-    background: var(--success);
+    background: var(--success-bright);
     transition: width .25s ease;
 }
 
-.rota-leg.is-alert .leg-tow-gauge-fill { background: var(--danger); }
+.rota-leg.is-alert .leg-tow-gauge-fill { background: var(--danger-bright); }
 
-/* "mais dados" — mostra as métricas secundárias de uma leg (mobile).
-   Sem efeito em ecrãs largos, onde já cabem todas inline. */
-.leg-more-toggle {
-    display: none;
+.leg-strip-tow em {
+    display: block;
+    color: var(--muted-dark);
+    font-style: normal;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
 }
 
-/* Perf / M&B inside the strip, far right */
+.leg-strip-tow em .leg-summary-tow-max {
+    font-family: var(--font-num);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* "mais dados" — revela Traf / FOB / Trip F / LW por leg. Legs em
+   alerta começam já expandidas (ver criarLegHTML). */
+.leg-more-toggle {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    margin: .65rem 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+}
+
+.leg-more-toggle .chev {
+    transition: transform .15s ease;
+}
+
+.leg-more-toggle[aria-expanded="true"] .chev {
+    transform: rotate(180deg);
+}
+
+.leg-strip-secondary {
+    display: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .5rem;
+    margin-top: .7rem;
+}
+
+.rota-leg.leg-expanded .leg-strip-secondary {
+    display: grid;
+}
+
+/* ── Metric cells (expanded state) ── */
+.leg-strip-metric {
+    min-height: 54px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: .1rem;
+    padding: .4rem .5rem;
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.09);
+    text-align: center;
+}
+
+.leg-strip-metric small {
+    color: var(--muted-dark);
+    font-size: .52rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.leg-strip-metric strong {
+    color: #fff;
+    font-size: .92rem;
+    line-height: 1.15;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+}
+
+/* TOW is a .leg-strip-metric too (for the hide-all-metrics toggle),
+   but must not take the boxed card look of the secondary cells. */
+.leg-strip-tow {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+}
+
+/* Perf / M&B — small, unobtrusive, top-right of the route row */
 .leg-strip-actions {
     display: flex;
     flex-direction: row;
+    flex-shrink: 0;
     gap: .26rem;
     align-items: center;
-    justify-content: center;
 }
 
 .btn-perf,
 .btn-mb {
-    min-width: 42px;
+    min-width: 40px;
     min-height: 22px;
-    padding: .18rem .3rem;
-    font-size: .57rem;
-    background: #f4f7fc;
-    border-color: var(--line);
+    padding: .16rem .3rem;
+    font-size: .55rem;
     line-height: 1;
 }
+
+/* Add / remove leg — quiet, tucked under each leg's content */
+.leg-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-top: .85rem;
+}
+
+.leg-controls .menos-leg,
+.leg-controls .mais-leg {
+    min-height: 24px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 999px;
+    padding: 0 .6rem;
+    font-size: .58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    background: rgba(255,255,255,.04);
+    color: var(--muted-dark);
+    transition: all .13s ease;
+}
+
+.leg-controls .menos-leg {
+    color: var(--danger-bright);
+    border-color: rgba(255,107,107,.3);
+    background: rgba(255,107,107,.08);
+}
+
+.leg-controls .mais-leg {
+    color: var(--accent);
+    border-color: rgba(220,50,50,.4);
+    background: rgba(220,50,50,.14);
+}
+
+.leg-controls .menos-leg:hover { background: rgba(255,107,107,.18); }
+.leg-controls .mais-leg:hover  { background: rgba(220,50,50,.24); }
 
 /* ======================================================
    LEG EDITOR DIALOG
@@ -748,65 +913,6 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     margin-top: .82rem;
 }
 
-/* ── LEG CONTROLS (add / remove below each strip) ── */
-.leg-controls {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .18rem .5rem .32rem;
-}
-
-.leg-controls .menos-leg,
-.leg-controls .mais-leg {
-    flex-shrink: 0;
-    min-height: 22px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0 .55rem;
-    font-size: .56rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    background: #fff;
-    color: var(--muted);
-    transition: all .13s ease;
-}
-
-.leg-controls .menos-leg {
-    color: var(--danger);
-    border-color: rgba(224,53,53,.22);
-    background: rgba(224,53,53,.05);
-}
-
-.leg-controls .mais-leg {
-    color: var(--accent-dark);
-    border-color: var(--accent-mid);
-    background: var(--accent-soft);
-}
-
-.leg-controls .menos-leg:hover { background: rgba(224,53,53,.13); }
-.leg-controls .mais-leg:hover  { background: rgba(220,50,50,.16); }
-
-.leg-connector {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: .3rem;
-    color: var(--muted);
-    opacity: .65;
-}
-
-.leg-connector-line {
-    flex: 1;
-    height: 1px;
-    border-top: 1.5px dashed currentColor;
-}
-
-.leg-connector-plane {
-    flex-shrink: 0;
-    opacity: .7;
-}
-
 .leg-editor-actions .menos-leg {
     color: var(--danger);
     border-color: rgba(224,53,53,.22);
@@ -902,105 +1008,12 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
         font-size: .58rem;
     }
 
-    .rota-leg {
-        margin: 0 .5rem .5rem;
+    .rota-legs-rail {
+        padding: .3rem .75rem 1.1rem;
     }
 
-    .leg-flight-strip {
-        /* mobile: [num 28px] [left-metric 1fr] [right-metric 1fr] [actions auto]
-           row1: number | name (cols2-3)      | actions (col4)
-           row2: TOW — leitura principal, largura total, com gauge
-           row3+4: traffic/fob/tripf/lw — só visíveis com .leg-expanded */
-        grid-template-columns: 28px 1fr 1fr auto;
-        gap: .26rem;
-        min-height: 0;
-        padding: .36rem;
-        border-radius: 11px;
-    }
-
-    .leg-strip-number {
-        width: 28px;
-        height: 28px;
-        font-size: .62rem;
-    }
-
-    .leg-strip-name {
-        font-size: .88rem;
-        grid-column: 2 / 4;
-        grid-row: 1;
-    }
-
-    .leg-strip-actions {
-        grid-column: 4;
-        grid-row: 1;
-        flex-direction: row;
-        justify-content: center;
-        gap: .2rem;
-    }
-
-    .leg-strip-metric {
-        min-height: 40px;
-        padding: .22rem .28rem;
-    }
-
-    /* TOW é a leitura principal em mobile: fica sempre visível, a toda
-       a largura, com a gauge de proximidade ao MTOW bem legível. */
-    .leg-strip-tow {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        min-height: 0;
-        padding: .32rem .42rem;
-    }
-
-    .leg-strip-tow strong { font-size: 1rem; }
-
-    .leg-strip-tow .leg-tow-gauge {
-        height: 5px;
-        margin: .28rem 0 .12rem;
-    }
-
-    /* Métricas secundárias: escondidas por padrão, reveladas por leg
-       via "mais dados" (legs em alerta começam já expandidas). */
-    .leg-strip-traffic { grid-column: 1 / 3; grid-row: 3; }
-    .leg-strip-fob     { grid-column: 3 / 5; grid-row: 3; }
-    .leg-strip-tripf   { grid-column: 1 / 3; grid-row: 4; }
-    .leg-strip-lw      { grid-column: 3 / 5; grid-row: 4; }
-
-    .rota-leg:not(.leg-expanded) .leg-strip-traffic,
-    .rota-leg:not(.leg-expanded) .leg-strip-fob,
-    .rota-leg:not(.leg-expanded) .leg-strip-tripf,
-    .rota-leg:not(.leg-expanded) .leg-strip-lw {
-        display: none;
-    }
-
-    .leg-more-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: .3rem;
-        width: 100%;
-        margin: .18rem 0 0;
-        padding: .32rem;
-        border: 0;
-        border-radius: 8px;
-        background: transparent;
-        color: var(--accent-dark);
-        font-size: .6rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-    }
-
-    .leg-more-toggle:active {
-        background: var(--accent-soft);
-    }
-
-    .leg-more-toggle .chev {
-        transition: transform .15s ease;
-    }
-
-    .leg-more-toggle[aria-expanded="true"] .chev {
-        transform: rotate(180deg);
+    .leg-strip-secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .btn-perf,

@@ -406,6 +406,24 @@ function displayFuelInfo(info) {
     return info || "Max: 0 lb";
 }
 
+function escapeHtml(str) {
+    return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[ch]));
+}
+
+const LEG_ROUTE_PLANE_SVG = '<svg class="leg-route-plane" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
+
+// "LPPT-LPPR" → "LPPT ✈ LPPR" (com ícone); nomes sem esse formato
+// mostram-se tal como estão, só com o texto escapado.
+function formatLegRouteHTML(nome) {
+    const raw = String(nome ?? "").trim();
+    if (!raw) return "LEG";
+    const m = raw.match(/^(.+?)\s*[-–—→]\s*(.+)$/);
+    if (!m) return escapeHtml(raw);
+    return `${escapeHtml(m[1].trim())} ${LEG_ROUTE_PLANE_SVG} ${escapeHtml(m[2].trim())}`;
+}
+
 function buildLegSummary(leg) {
     const aircraft = gAircraftAtivo;
     const toNum = v => Number(String(v ?? "").replace(",", "."));
@@ -566,58 +584,55 @@ function openLegEditor(rotaIndex, legIndex) {
 function criarLegHTML(leg, legIndex = 0) {
     const summary = buildLegSummary(leg);
     const statusClass = getLegStatusClass(leg);
-    // Legs em alerta começam expandidas em mobile: os dados que precisam
-    // de atenção nunca ficam escondidos atrás de um toque extra.
+    // Legs em alerta começam expandidas: os dados que precisam de
+    // atenção nunca ficam escondidos atrás de um toque extra.
     const startExpanded = statusClass === "is-alert";
+    const nomeEscaped = escapeHtml(summary.nome);
     return `
     <div class="rota-leg ${statusClass}${startExpanded ? " leg-expanded" : ""}" data-leg-index="${legIndex}" style="display:none;">
-        <div class="leg-flight-strip" role="button" tabindex="0"
-             title="Editar ${summary.nome}" aria-label="Editar ${summary.nome}">
-            <span class="leg-strip-number">${String(legIndex + 1).padStart(2, "0")}</span>
-            <span class="leg-strip-name">${summary.nome}</span>
-            <span class="leg-strip-metric leg-strip-traffic">
-                <small>TRAF</small>
-                <strong class="leg-summary-traffic-load">${summary.trafficLoad}</strong>
-                <em class="leg-summary-traffic-max">max ${summary.maxTraffic}</em>
-            </span>
-            <span class="leg-strip-metric leg-strip-tow">
-                <small>TOW</small>
-                <strong class="leg-summary-tow">${summary.tow}</strong>
-                <span class="leg-tow-gauge"><span class="leg-tow-gauge-fill" style="width:${summary.towPct}%"></span></span>
-                <em class="leg-summary-tow-max">max ${summary.maxTow}</em>
-            </span>
-            <span class="leg-strip-metric leg-strip-fob">
-                <small>FOB</small>
-                <strong class="leg-summary-fob">${summary.fuelOnBoard}</strong>
-                <em class="leg-summary-fuel-max">max ${summary.maxFuel}</em>
-            </span>
-            <span class="leg-strip-metric leg-strip-tripf">
-                <small>TRIP F</small>
-                <strong class="leg-summary-tripf">${summary.tripFuel}</strong>
-                <em class="leg-summary-tripf-max">fob ${summary.maxTripFuel}</em>
-            </span>
-            <span class="leg-strip-metric leg-strip-lw">
-                <small>LW</small>
-                <strong class="leg-summary-lw">${summary.lw}</strong>
-                <em class="leg-summary-lw-max">max ${summary.maxLw}</em>
-            </span>
-            <span class="leg-strip-actions" aria-label="Ações da leg">
-                <button class="btn-perf" type="button">Perf</button>
-                <button class="btn-mb" type="button">M&amp;B</button>
-            </span>
-        </div>
-        <button class="leg-more-toggle" type="button" aria-expanded="${startExpanded}">
-            <span class="leg-more-toggle-label">${startExpanded ? "menos dados" : "mais dados"}</span>
-            <svg class="chev" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
-        </button>
-        <div class="leg-controls">
-            <button class="menos-leg" type="button" title="Remover esta leg">− Leg</button>
-            <div class="leg-connector" aria-hidden="true">
-                <span class="leg-connector-line"></span>
-                <svg class="leg-connector-plane" viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-                <span class="leg-connector-line"></span>
+        <span class="leg-strip-number" aria-hidden="true">${String(legIndex + 1).padStart(2, "0")}</span>
+        <div class="leg-body">
+            <div class="leg-flight-strip" role="button" tabindex="0"
+                 title="Editar ${nomeEscaped}" aria-label="Editar ${nomeEscaped}">
+                <div class="leg-route-row">
+                    <span class="leg-strip-name">${formatLegRouteHTML(summary.nome)}</span>
+                    <span class="leg-strip-actions" aria-label="Ações da leg">
+                        <button class="btn-perf" type="button">Perf</button>
+                        <button class="btn-mb" type="button">M&amp;B</button>
+                    </span>
+                </div>
+                <div class="leg-strip-metric leg-strip-tow">
+                    <strong class="leg-summary-tow">${summary.tow}</strong>
+                    <span class="leg-tow-gauge"><span class="leg-tow-gauge-fill" style="width:${summary.towPct}%"></span></span>
+                    <em>TOW · máx <span class="leg-summary-tow-max">${summary.maxTow}</span></em>
+                </div>
             </div>
-            <button class="mais-leg" type="button" title="Adicionar leg a seguir">+ Leg</button>
+            <button class="leg-more-toggle" type="button" aria-expanded="${startExpanded}">
+                <span class="leg-more-toggle-label">${startExpanded ? "menos dados" : "mais dados"}</span>
+                <svg class="chev" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="leg-strip-secondary">
+                <span class="leg-strip-metric leg-strip-traffic">
+                    <small>TRAF</small>
+                    <strong class="leg-summary-traffic-load">${summary.trafficLoad}</strong>
+                </span>
+                <span class="leg-strip-metric leg-strip-fob">
+                    <small>FOB</small>
+                    <strong class="leg-summary-fob">${summary.fuelOnBoard}</strong>
+                </span>
+                <span class="leg-strip-metric leg-strip-tripf">
+                    <small>TRIP F</small>
+                    <strong class="leg-summary-tripf">${summary.tripFuel}</strong>
+                </span>
+                <span class="leg-strip-metric leg-strip-lw">
+                    <small>LW</small>
+                    <strong class="leg-summary-lw">${summary.lw}</strong>
+                </span>
+            </div>
+            <div class="leg-controls">
+                <button class="menos-leg" type="button" title="Remover esta leg">− Leg</button>
+                <button class="mais-leg" type="button" title="Adicionar leg a seguir">+ Leg</button>
+            </div>
         </div>
     </div>`;
 }
@@ -637,28 +652,26 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
             const target = el.querySelector(selector);
             if (target) target.textContent = text;
         };
-        // Normalize legacy "red"/"black" → brand danger color / inherit
-        const setColor = (selector, color) => {
+        // Normalize legacy "red"/"black" → brand danger color / inherit.
+        // redColor pode ser sobreposto para elementos em fundo escuro.
+        const setColor = (selector, color, redColor = "#e03535") => {
             const target = el.querySelector(selector);
             if (!target) return;
             if (!color || color === "black") target.style.color = "";
-            else if (color === "red") target.style.color = "#e03535";
+            else if (color === "red") target.style.color = redColor;
             else target.style.color = color;
         };
 
-        setText(".leg-strip-name", summary.nome);
+        const nameEl = el.querySelector(".leg-strip-name");
+        if (nameEl) nameEl.innerHTML = formatLegRouteHTML(summary.nome);
         setText(".leg-summary-traffic-load", summary.trafficLoad);
-        setText(".leg-summary-traffic-max", `max ${summary.maxTraffic}`);
         setText(".leg-summary-tow", summary.tow);
-        setText(".leg-summary-tow-max", `max ${summary.maxTow}`);
+        setText(".leg-summary-tow-max", summary.maxTow);
         const towGaugeFill = el.querySelector(".leg-tow-gauge-fill");
         if (towGaugeFill) towGaugeFill.style.width = `${summary.towPct}%`;
         setText(".leg-summary-fob", summary.fuelOnBoard);
-        setText(".leg-summary-fuel-max", `max ${summary.maxFuel}`);
         setText(".leg-summary-tripf", summary.tripFuel);
-        setText(".leg-summary-tripf-max", `fob ${summary.maxTripFuel}`);
         setText(".leg-summary-lw", summary.lw);
-        setText(".leg-summary-lw-max", `max ${summary.maxLw}`);
 
         setText(".endurance-info", leg.endurance || "");
         setText(".zfw-info", leg.zfw || "");
@@ -671,9 +684,9 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
         setColor(".zfw-info", leg.limitColors?.zfw);
         setColor(".ramp-weight-info", leg.limitColors?.ramp);
         setColor(".tow-info", leg.limitColors?.tow);
-        setColor(".leg-summary-tow", leg.limitColors?.tow);
+        setColor(".leg-summary-tow", leg.limitColors?.tow, "#ff6b6b");
         setColor(".landing-weight-info", leg.limitColors?.ldg);
-        setColor(".leg-summary-lw", leg.limitColors?.ldg);
+        setColor(".leg-summary-lw", leg.limitColors?.ldg, "#ff6b6b");
 
         const fuelInputEl = el.querySelector(".fuel-ob-input");
         if (fuelInputEl) fuelInputEl.placeholder = leg?.nextSuggestedFuel || "Lb";
@@ -696,7 +709,7 @@ function criarRotaCardHTML(rota) {
                 </svg>
             </div>
             <input class="nome-rota"
-                   value="${rota?.nome ?? ""}"
+                   value="${escapeHtml(rota?.nome ?? "")}"
                    placeholder="ex: RVP951">
             <div class="rota-actions">
                 <button class="btn-fcalc" title="Calcular combustível máximo">F-Calc</button>
@@ -705,6 +718,7 @@ function criarRotaCardHTML(rota) {
                 <button class="toggleBtn">▼</button>
             </div>
         </div>
+        <div class="rota-legs-rail"></div>
     </div>`;
 }
 
@@ -716,10 +730,11 @@ function renderRotas(rootEl, estado) {
         const rotaWrapper = document.createElement("div");
         rotaWrapper.innerHTML = criarRotaCardHTML(rota);
         const rotaCard = rotaWrapper.firstElementChild;
+        const legsRail = rotaCard.querySelector(".rota-legs-rail");
 
         // Adicionar legs
         (rota.legs || []).forEach((leg, legIndex) => {
-            rotaCard.insertAdjacentHTML("beforeend", criarLegHTML(leg, legIndex));
+            legsRail.insertAdjacentHTML("beforeend", criarLegHTML(leg, legIndex));
         });
 
         // Formatar unidades ao carregar
