@@ -225,6 +225,8 @@ btnEnter.addEventListener("click", () => {
     if (tabId === "1") {
         weight = Number(dialog.querySelector("#manual-load").value) || 0;
         moment = 0;
+        window.trafficLegAlvo.trafficLoad.total = weight;
+        window.trafficLegAlvo.trafficLoad.moment = moment;
     }
 
     // TAB 2 — passageiros
