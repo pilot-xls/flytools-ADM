@@ -590,6 +590,7 @@ function criarLegHTML(leg, legIndex = 0) {
     const nomeEscaped = escapeHtml(summary.nome);
     return `
     <div class="rota-leg ${statusClass}${startExpanded ? " leg-expanded" : ""}" data-leg-index="${legIndex}" style="display:none;">
+        <div class="leg-rail-row">
         <span class="leg-strip-number" aria-hidden="true">${String(legIndex + 1).padStart(2, "0")}</span>
         <div class="leg-body">
             <div class="leg-flight-strip" role="button" tabindex="0"
@@ -633,6 +634,7 @@ function criarLegHTML(leg, legIndex = 0) {
                 <button class="menos-leg" type="button" title="Remover esta leg">− Leg</button>
                 <button class="mais-leg" type="button" title="Adicionar leg a seguir">+ Leg</button>
             </div>
+        </div>
         </div>
     </div>`;
 }

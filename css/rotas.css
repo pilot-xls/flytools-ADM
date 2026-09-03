@@ -355,15 +355,23 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .rota-leg {
+    /* Mostrar/ocultar é feito em JS via style.display inline
+       (abrir/fechar a rota) — por isso este elemento não define
+       display aqui: uma regra CSS nunca ganharia ao inline style,
+       e o grid de 2 colunas vive antes num wrapper à parte
+       (.leg-rail-row) que o JS não toca. */
     position: relative;
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    column-gap: .85rem;
     padding-top: 1.05rem;
 }
 
 .rota-leg:first-of-type {
     padding-top: 0;
+}
+
+.leg-rail-row {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: .85rem;
 }
 
 /* Segmento da linha do carril: liga o nó desta leg ao nó da leg
