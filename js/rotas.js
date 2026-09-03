@@ -590,6 +590,7 @@ function criarLegHTML(leg, legIndex = 0) {
     const nomeEscaped = escapeHtml(summary.nome);
     return `
     <div class="rota-leg ${statusClass}${startExpanded ? " leg-expanded" : ""}" data-leg-index="${legIndex}" style="display:none;">
+        <div class="leg-rail-row">
         <span class="leg-strip-number" aria-hidden="true">${String(legIndex + 1).padStart(2, "0")}</span>
         <div class="leg-body">
             <div class="leg-flight-strip" role="button" tabindex="0"
@@ -634,6 +635,7 @@ function criarLegHTML(leg, legIndex = 0) {
                 <button class="mais-leg" type="button" title="Adicionar leg a seguir">+ Leg</button>
             </div>
         </div>
+        </div>
     </div>`;
 }
 
@@ -652,13 +654,12 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
             const target = el.querySelector(selector);
             if (target) target.textContent = text;
         };
-        // Normalize legacy "red"/"black" → brand danger color / inherit.
-        // redColor pode ser sobreposto para elementos em fundo escuro.
-        const setColor = (selector, color, redColor = "#e03535") => {
+        // Normalize legacy "red"/"black" → brand danger color / inherit
+        const setColor = (selector, color) => {
             const target = el.querySelector(selector);
             if (!target) return;
             if (!color || color === "black") target.style.color = "";
-            else if (color === "red") target.style.color = redColor;
+            else if (color === "red") target.style.color = "#e03535";
             else target.style.color = color;
         };
 
@@ -684,9 +685,9 @@ function aplicarCoresLimitsDaRotaNoDOM(rotaCard, rotaData) {
         setColor(".zfw-info", leg.limitColors?.zfw);
         setColor(".ramp-weight-info", leg.limitColors?.ramp);
         setColor(".tow-info", leg.limitColors?.tow);
-        setColor(".leg-summary-tow", leg.limitColors?.tow, "#ff6b6b");
+        setColor(".leg-summary-tow", leg.limitColors?.tow);
         setColor(".landing-weight-info", leg.limitColors?.ldg);
-        setColor(".leg-summary-lw", leg.limitColors?.ldg, "#ff6b6b");
+        setColor(".leg-summary-lw", leg.limitColors?.ldg);
 
         const fuelInputEl = el.querySelector(".fuel-ob-input");
         if (fuelInputEl) fuelInputEl.placeholder = leg?.nextSuggestedFuel || "Lb";

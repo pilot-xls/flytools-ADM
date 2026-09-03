@@ -17,11 +17,8 @@
     --accent-soft:  rgba(220,50,50,.10);
     --accent-mid:   rgba(220,50,50,.28);
     --success:      #16a34a;
-    --success-bright: #34d399;
     --danger:       #e03535;
-    --danger-bright: #ff6b6b;
     --warning:      #d97706;
-    --line-on-dark: rgba(232,236,245,.14);
     --shadow-xl:    0 16px 48px rgba(10,15,30,.22);
     --shadow:       0 6px 20px rgba(26,32,53,.09);
     --shadow-soft:  0 3px 10px rgba(26,32,53,.06);
@@ -222,66 +219,42 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     width: min(960px, calc(100% - 24px));
     margin: 0 auto .75rem;
     border-radius: var(--r-xl);
-    background: var(--panel-dark);
-    box-shadow: var(--shadow-xl);
+    background: var(--panel);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--line);
     overflow: hidden;
 }
 
 .rota-header {
-    position: relative;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: .7rem;
-    padding: .8rem .9rem;
-    overflow: hidden;
-}
-
-/* Left red stripe + faint cockpit grid — same language as the toolbar. */
-.rota-header::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    width: 4px;
-    background: linear-gradient(180deg, var(--accent), var(--accent-dark));
-}
-
-.rota-header::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        90deg,
-        transparent 0, transparent 60px,
-        rgba(255,255,255,.018) 60px, rgba(255,255,255,.018) 61px
-    );
-    pointer-events: none;
+    padding: .7rem .85rem;
+    background: #f4f7fc;
+    border-bottom: 1px solid var(--line);
 }
 
 .rota-header-icon {
-    position: relative;
-    z-index: 1;
     width: 34px;
     height: 34px;
     display: grid;
     place-items: center;
     border-radius: 9px;
-    background: rgba(220,50,50,.16);
-    color: #fff;
-    border: 1px solid rgba(220,50,50,.4);
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-mid);
     flex-shrink: 0;
 }
 
 .rota-header .nome-rota {
-    position: relative;
-    z-index: 1;
     width: 100%;
     min-height: 38px;
     border: 1px solid transparent;
     border-radius: var(--r-md);
     outline: none;
     padding: 0 .6rem;
-    color: var(--ink-on-dark);
+    color: var(--ink);
     background: transparent;
     font-size: clamp(.95rem, 4vw, 1.22rem);
     font-weight: 900;
@@ -291,23 +264,21 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .rota-header .nome-rota:focus {
-    border-color: rgba(220,50,50,.5);
-    background: rgba(255,255,255,.06);
-    box-shadow: 0 0 0 3px rgba(220,50,50,.18);
+    border-color: var(--accent-mid);
+    background: #fff;
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .rota-header .nome-rota::placeholder {
     font-weight: 400;
     letter-spacing: 0;
     font-family: inherit;
-    color: var(--muted-dark);
-    opacity: .7;
+    color: var(--muted);
+    opacity: .45;
     text-transform: none;
 }
 
 .rota-actions {
-    position: relative;
-    z-index: 1;
     display: flex;
     gap: .35rem;
     align-items: center;
@@ -315,29 +286,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 
 .rota-actions button,
 .btn-perf,
-.btn-mb {
-    min-height: 30px;
-    border: 1px solid rgba(255,255,255,.16);
-    border-radius: 999px;
-    padding: 0 .62rem;
-    color: var(--muted-dark);
-    background: rgba(255,255,255,.06);
-    font-size: .63rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    transition: all .13s ease;
-}
-
-.rota-actions button:hover,
-.btn-perf:hover,
-.btn-mb:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255,255,255,.32);
-    color: #fff;
-    background: rgba(255,255,255,.14);
-}
-
+.btn-mb,
 .leg-editor-actions button,
 .leg-editor-load-btn {
     min-height: 30px;
@@ -353,6 +302,9 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     transition: all .13s ease;
 }
 
+.rota-actions button:hover,
+.btn-perf:hover,
+.btn-mb:hover,
 .leg-editor-actions button:hover,
 .leg-editor-load-btn:hover {
     transform: translateY(-1px);
@@ -362,28 +314,28 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .btn-fcalc {
-    color: #ffb3b3 !important;
-    border-color: rgba(220,50,50,.4) !important;
-    background: rgba(220,50,50,.14) !important;
+    color: var(--accent-dark) !important;
+    border-color: var(--accent-mid) !important;
+    background: var(--accent-soft) !important;
 }
 
 .btn-clear-legs {
-    color: #ffcb8a !important;
-    border-color: rgba(217,119,6,.4) !important;
-    background: rgba(217,119,6,.14) !important;
+    color: #7c3500 !important;
+    border-color: rgba(217,119,6,.28) !important;
+    background: rgba(217,119,6,.08) !important;
 }
 
 .del-rota {
-    color: var(--danger-bright) !important;
-    border-color: rgba(255,107,107,.35) !important;
-    background: rgba(255,107,107,.12) !important;
+    color: var(--danger) !important;
+    border-color: rgba(224,53,53,.22) !important;
+    background: rgba(224,53,53,.07) !important;
 }
 
 .toggleBtn {
     min-width: 34px;
-    color: var(--muted-dark) !important;
-    background: rgba(255,255,255,.06) !important;
-    border-color: rgba(255,255,255,.16) !important;
+    color: var(--muted) !important;
+    background: #edf0f6 !important;
+    border-color: var(--line) !important;
 }
 
 /* ======================================================
@@ -403,10 +355,12 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .rota-leg {
+    /* Mostrar/ocultar é feito em JS via style.display inline
+       (abrir/fechar a rota) — por isso este elemento não define
+       display aqui: uma regra CSS nunca ganharia ao inline style,
+       e o grid de 2 colunas vive antes num wrapper à parte
+       (.leg-rail-row) que o JS não toca. */
     position: relative;
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    column-gap: .85rem;
     padding-top: 1.05rem;
 }
 
@@ -414,10 +368,17 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     padding-top: 0;
 }
 
+.leg-rail-row {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: .85rem;
+}
+
 /* Segmento da linha do carril: liga o nó desta leg ao nó da leg
    seguinte. Ancorado aos bordos da própria leg (top/bottom), por
    isso mantém-se correto seja qual for a altura de cada leg
-   (colapsada ou expandida com "mais dados"). */
+   (colapsada ou expandida com "mais dados"). Fica sempre por
+   baixo do conteúdo — ver z-index:1 em .leg-body/.leg-strip-number. */
 .rota-leg:not(:last-of-type)::before {
     content: "";
     position: absolute;
@@ -426,7 +387,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     bottom: calc(-1.05rem - 22px);
     left: 22px;
     width: 2px;
-    background: var(--line-on-dark);
+    background: rgba(26,32,53,.16);
 }
 
 /* Rail node — doubles as the leg's status color, so the eye follows
@@ -439,20 +400,22 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    color: var(--success-bright);
-    background: var(--panel-dark);
-    border: 2px solid var(--success-bright);
+    color: var(--success);
+    background: var(--panel);
+    border: 2px solid var(--success);
     font-size: .82rem;
     font-weight: 900;
     font-family: var(--font-num);
 }
 
 .rota-leg.is-alert .leg-strip-number {
-    color: var(--danger-bright);
-    border-color: var(--danger-bright);
+    color: var(--danger);
+    border-color: var(--danger);
 }
 
 .leg-body {
+    position: relative;
+    z-index: 1;
     min-width: 0;
     padding-bottom: .2rem;
 }
@@ -464,7 +427,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     border-radius: var(--r-md);
     padding: .2rem .3rem;
     margin: -.2rem -.3rem 0;
-    color: var(--ink-on-dark);
+    color: var(--ink);
     text-align: left;
     background: transparent;
     cursor: pointer;
@@ -474,7 +437,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 
 .leg-flight-strip:hover,
 .leg-flight-strip:focus-visible {
-    background: rgba(255,255,255,.05);
+    background: rgba(26,32,53,.04);
 }
 
 .leg-route-row {
@@ -488,7 +451,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     display: flex;
     align-items: center;
     gap: .4rem;
-    color: #fff;
+    color: var(--ink);
     font-size: clamp(1rem, 3.4vw, 1.28rem);
     font-weight: 900;
     letter-spacing: .04em;
@@ -510,7 +473,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .leg-strip-tow .leg-summary-tow {
-    color: #fff;
+    color: var(--ink);
     font-size: clamp(1.3rem, 5vw, 1.7rem);
     font-weight: 900;
     font-family: var(--font-num);
@@ -523,7 +486,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     height: 8px;
     margin: .5rem 0 .4rem;
     border-radius: 99px;
-    background: rgba(255,255,255,.08);
+    background: rgba(26,32,53,.08);
     overflow: hidden;
 }
 
@@ -532,15 +495,15 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     height: 100%;
     width: 0%;
     border-radius: 99px;
-    background: var(--success-bright);
+    background: var(--success);
     transition: width .25s ease;
 }
 
-.rota-leg.is-alert .leg-tow-gauge-fill { background: var(--danger-bright); }
+.rota-leg.is-alert .leg-tow-gauge-fill { background: var(--danger); }
 
 .leg-strip-tow em {
     display: block;
-    color: var(--muted-dark);
+    color: var(--muted);
     font-style: normal;
     font-size: .68rem;
     font-weight: 700;
@@ -564,7 +527,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     padding: 0;
     border: 0;
     background: transparent;
-    color: var(--accent);
+    color: var(--accent-dark);
     font-size: .66rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -599,13 +562,13 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
     gap: .1rem;
     padding: .4rem .5rem;
     border-radius: var(--r-md);
-    background: rgba(255,255,255,.045);
-    border: 1px solid rgba(255,255,255,.09);
+    background: #f5f7fc;
+    border: 1px solid rgba(26,32,53,.06);
     text-align: center;
 }
 
 .leg-strip-metric small {
-    color: var(--muted-dark);
+    color: var(--muted);
     font-size: .52rem;
     font-weight: 900;
     letter-spacing: .12em;
@@ -614,7 +577,7 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 }
 
 .leg-strip-metric strong {
-    color: #fff;
+    color: var(--ink);
     font-size: .92rem;
     line-height: 1.15;
     font-family: var(--font-num);
@@ -660,32 +623,32 @@ body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
 .leg-controls .menos-leg,
 .leg-controls .mais-leg {
     min-height: 24px;
-    border: 1px solid rgba(255,255,255,.14);
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 0 .6rem;
     font-size: .58rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .05em;
-    background: rgba(255,255,255,.04);
-    color: var(--muted-dark);
+    background: #fff;
+    color: var(--muted);
     transition: all .13s ease;
 }
 
 .leg-controls .menos-leg {
-    color: var(--danger-bright);
-    border-color: rgba(255,107,107,.3);
-    background: rgba(255,107,107,.08);
+    color: var(--danger);
+    border-color: rgba(224,53,53,.22);
+    background: rgba(224,53,53,.05);
 }
 
 .leg-controls .mais-leg {
-    color: var(--accent);
-    border-color: rgba(220,50,50,.4);
-    background: rgba(220,50,50,.14);
+    color: var(--accent-dark);
+    border-color: var(--accent-mid);
+    background: var(--accent-soft);
 }
 
-.leg-controls .menos-leg:hover { background: rgba(255,107,107,.18); }
-.leg-controls .mais-leg:hover  { background: rgba(220,50,50,.24); }
+.leg-controls .menos-leg:hover { background: rgba(224,53,53,.13); }
+.leg-controls .mais-leg:hover  { background: rgba(220,50,50,.16); }
 
 /* ======================================================
    LEG EDITOR DIALOG
