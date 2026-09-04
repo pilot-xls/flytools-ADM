@@ -207,8 +207,10 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 }
 
 /* Estado: métricas das legs ocultas — o TOW + gauge fica sempre visível
-   como âncora da leg, só as métricas secundárias colapsam. */
-body.legs-metrics-hidden .leg-strip-metric:not(.leg-strip-tow) {
+   como âncora da leg, só as métricas secundárias colapsam. Uma leg que o
+   utilizador expandiu manualmente ("mostrar dados") sobrepõe-se a este
+   estado global e mantém as suas métricas visíveis. */
+body.legs-metrics-hidden .rota-leg:not(.leg-expanded) .leg-strip-metric:not(.leg-strip-tow) {
     display: none;
 }
 
