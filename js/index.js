@@ -1,8 +1,4 @@
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-    .then(reg => console.log("Service Worker registado:", reg))
-    .catch(err => console.error("Erro ao registar SW:", err));
-}
+// Registo do Service Worker: ver js/sw-register.js (partilhado por todas as páginas).
 
 const CONNECTION_PROBE_URL = './manifest.json';
 const CONNECTION_PROBE_INTERVAL_MS = 5000;
