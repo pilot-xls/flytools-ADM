@@ -1,6 +1,6 @@
 // Nome da cache actual da aplicação.
 // Sempre que mudares ficheiros importantes, incrementa esta versão.
-const CACHE_NAME = 'd228-cache-v1.6.1';
+const CACHE_NAME = 'd228-cache-v1.6.2';
 
 // Página principal usada como fallback quando uma navegação falha.
 const APP_SHELL_FALLBACK = './index.html';
@@ -173,6 +173,7 @@ const ASSETS = [
   './js/rotas.js',
   './js/settings.js',
   './js/spa-router.js',
+  './js/sw-register.js',
   './js/todrFlaps1_CSATH.js',
   './js/todrFlapsUP_CSATH.js',
   './js/torqueTakeoff_CSATH.js',
