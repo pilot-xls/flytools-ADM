@@ -13,14 +13,20 @@ if ('serviceWorker' in navigator) {
     updateViaCache: 'none'
   })
     .then((reg) => {
+      const checkForUpdate = () => reg.update().catch(() => {});
+
       // Verifica logo ao registar, e sempre que a página volta a ficar
       // visível (em vez de depender só da verificação automática do browser
       // ou de esperar por uma transição offline -> online).
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          reg.update().catch(() => {});
-        }
+        if (document.visibilityState === 'visible') checkForUpdate();
       });
+
+      // O spa-router troca de página sem recarregar o documento (nem disparar
+      // visibilitychange), por isso navegar entre calculadora/mb/rotas dentro
+      // da app nunca chegava a verificar updates. O spa-router despacha este
+      // evento a cada navegação interna.
+      window.addEventListener('spa:navigate', checkForUpdate);
     })
     .catch((err) => console.error('Erro ao registar SW:', err));
 
