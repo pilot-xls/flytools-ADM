@@ -293,6 +293,12 @@
         updateFooterActive(target);
         window.scrollTo(0, 0);
         window.dispatchEvent(new Event('resize'));
+
+        // Avisa o sw-register.js: como esta troca de vista não recarrega o
+        // documento nem dispara visibilitychange, é a única forma de a
+        // verificação de update do Service Worker correr também ao navegar
+        // dentro da app (não só ao trocar de aba).
+        window.dispatchEvent(new Event('spa:navigate'));
     }
 
     if (document.readyState === 'loading') {
